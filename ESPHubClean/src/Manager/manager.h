@@ -32,14 +32,14 @@ private:
     uint8_t mac1[6] = {0xBC, 0xDD, 0xC2, 0x53, 0x50, 0xBB};
 
     GpioConnectionData gpioConnectionDataE0;
-    EspNowConnectionData espNowConnectionDataE1;
-    GpioConnectionData gpioConnectionDataE2;
-    GpioConnectionData gpioConnectionDataE3;
+    GpioConnectionData gpioConnectionDataE1;
+    EspNowConnectionData espNowConnectionDataE2;
+    EspNowConnectionData espNowConnectionDataE3;
 
-        GpioConnectionData gpioConnectionDataB0;
-    EspNowConnectionData espNowConnectionDataB1;
-    GpioConnectionData gpioConnectionDataB2;
-    GpioConnectionData gpioConnectionDataB3;
+    GpioConnectionData gpioConnectionDataB0;
+    GpioConnectionData gpioConnectionDataB1;
+    EspNowConnectionData espNowConnectionDataB2;
+    EspNowConnectionData espNowConnectionDataB2;
 
 
     GpioDriver gpioDriver;
@@ -77,14 +77,11 @@ public:
         Serial.println("Blynk started");
         switchesRepo.init();
         gpioConnectionDataE0.init(2);
-        espNowConnectionDataE1.begin(mac1, 0);
-        gpioConnectionDataE2.init(4);
-        gpioConnectionDataE3.init(16);
+        espNowConnectionDataE3.begin(mac1, 0);
 
         gpioConnectionDataB0.init(18);
-        espNowConnectionDataB1.begin(mac1, 2);
-        gpioConnectionDataB2.init(19);
-        gpioConnectionDataB3.init(21);
+        espNowConnectionDataB2.begin(mac1, 2);
+       
 
         IRepoPort::SmartDevice deviceE0 = {Light(0, 0, "E0 "), &gpioConnectionDataE0, &gpioConnection};
 
