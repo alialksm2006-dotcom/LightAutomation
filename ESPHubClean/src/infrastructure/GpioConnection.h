@@ -3,7 +3,7 @@
 #include "domain/entities/Light.h"
 #include "GpioConnectionData.h"
 #include <Arduino.h>
-class GpioInfra :public ILightExecuteConnection
+class GpioConnection :public ILightExecuteConnection
 {
 
     public :

@@ -3,7 +3,7 @@
 #include "ports/ILightConnectionData.h"
 #include <TelnetStream.h>
 #include <string>
-class EspNowWay : public ILightConnectionData
+class EspNowConnectionData : public ILightConnectionData
 {
 public:
     uint8_t mac[6];
