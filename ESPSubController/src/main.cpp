@@ -1,57 +1,94 @@
 #include <Arduino.h>
-#include <MyESpNowLib.h>
+#include <Bounce2.h>
 
-enum Type
-    {
-        Toggle = 0,
-        updateChannel = 1
-    };
+// ========================
+// Pins
+// ========================
 
-     typedef struct 
-    {
-        Type type;
-        bool state;
-        int pin;
-    }DataToggle;
+const uint8_t BUTTON_1_PIN = 3;
+const uint8_t BUTTON_2_PIN = 0;
 
-typedef struct
+const uint8_t OUTPUT_1_PIN = 1;
+const uint8_t OUTPUT_2_PIN = 2;
+
+
+// ========================
+// Bounce Objects
+// ========================
+
+Bounce button1 = Bounce();
+Bounce button2 = Bounce();
+
+
+// ========================
+// Output States
+// ========================
+
+bool output1State = false;
+bool output2State = false;
+
+
+// ========================
+// Setup
+// ========================
+
+void setup()
 {
-  Type type;
-  uint8_t newChannel;
-} stChangeChannel;
 
-DataToggle dataToggle;
-stChangeChannel changeChannelPayload;
+    // Outputs
+    pinMode(OUTPUT_1_PIN, OUTPUT);
+    pinMode(OUTPUT_2_PIN, OUTPUT);
+
+    // Initial state
+    digitalWrite(OUTPUT_1_PIN, LOW);
+    digitalWrite(OUTPUT_2_PIN, LOW);
 
 
+    // Attach buttons
+    button1.attach(BUTTON_1_PIN, INPUT_PULLUP);
+    button2.attach(BUTTON_2_PIN, INPUT_PULLUP);
 
-void receiveData(const uint8_t* mac, const uint8_t* data, uint8_t len) {
-  switch (data[0]) {
-    case Type::Toggle:
-
-    
-      memcpy(&dataToggle, data, sizeof(dataToggle));
-      digitalWrite(dataToggle.pin, !dataToggle.state);
-      break;
-    case Type::updateChannel:
-      memcpy(&changeChannelPayload, data, sizeof(changeChannelPayload));
-      wifi_set_channel(changeChannelPayload.newChannel);
-      break;
-  }
+    // Debounce interval
+    button1.interval(25);
+    button2.interval(25);
 }
 
-void setup() {
-   pinMode(0, OUTPUT);
-  pinMode(2, OUTPUT);
 
-  espNowBegin(ESP_NOW_ROLE_BOTH,2);
-  espNowOnReceive(receiveData);
-  Serial.begin(115200);
-  Serial.println(WiFi.macAddress());
-  Serial.println(WiFi.channel());
-  
-}
+// ========================
+// Loop
+// ========================
 
-void loop() {
+void loop()
+{
+    // Update buttons
+    button1.update();
+    button2.update();
 
+
+    // Button 1 pressed
+    if (button1.fell())
+    {
+        output1State = !output1State;
+
+        digitalWrite(
+            OUTPUT_1_PIN,
+            output1State ? HIGH : LOW
+        );
+
+       
+    }
+
+
+    // Button 2 pressed
+    if (button2.fell())
+    {
+        output2State = !output2State;
+
+        digitalWrite(
+            OUTPUT_2_PIN,
+            output2State ? HIGH : LOW
+        );
+
+       
+    }
 }
