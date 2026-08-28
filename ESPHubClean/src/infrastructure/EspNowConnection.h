@@ -47,7 +47,7 @@ public:
 
     void init(const ILightConnectionData *infra) override
     {
-        const EspNowWay *infraWay = dynamic_cast<const EspNowWay *>(infra);
+        const EspNowConnectionData *infraWay = dynamic_cast<const EspNowConnectionData *>(infra);
 
         if (!infraWay)
             return;
@@ -57,7 +57,7 @@ public:
     void execute(const Light &light, const ILightConnectionData *infra) override
     {
         Serial.println("mac is : " + String(infra->connectionString().c_str()));
-        const EspNowWay *infraWay = dynamic_cast<const EspNowWay *>(infra);
+        const EspNowConnectionData *infraWay = dynamic_cast<const EspNowConnectionData *>(infra);
         if (!infraWay)
             return;
 
