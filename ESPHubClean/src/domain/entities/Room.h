@@ -5,6 +5,6 @@
 
 class Room {
 public:
-    std::string name;           // bedroom, kitchen
-    std::vector<Light> lights;  // المصابيح في هذه الغرفة
+      int id;
+    std::string name;         
 };
