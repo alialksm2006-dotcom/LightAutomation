@@ -1,29 +1,80 @@
-#pragma once 
+#pragma once
 #include <string>
-    class Light
+class Light
+{
+public:
+    int id;
+    int controllerId;
+    bool state = false;
+    std::string room;
+    std::string name;
+    int outputNumber;
+    int protocolId;
+    int roomId;
+    int numberOnLight;
+
+ Light(
+        int id,
+        int controllerId,
+        const std::string& name,
+        const std::string& room,
+        int outputNumber,
+        int protocolId,
+        int roomId,
+        int numberOnLight,
+        bool state = false
+    )
+        : id(id),
+          controllerId(controllerId),
+          state(state),
+          room(room),
+          name(name),
+          outputNumber(outputNumber),
+          protocolId(protocolId),
+          roomId(roomId),
+          numberOnLight(numberOnLight)
     {
-    public:
-        int id;
-        int controllerId;
-        bool state = false;
-            std::string room;
-        std::string name;
+    }
+    void turnOn()
+    {
+        state = true;
+    }
 
-        // مُنشئ يأخذ std::string بالمرجع الثابت
-        Light(int id, int controllerId, const std::string &name ,const std::string &room="ROOM 1 ")  : id(id), name(name),controllerId(controllerId), room(room) {}
+    void turnOff()
+    {
+        state = false;
+    }
 
-        void turnOn()
-        {
-            state = true;
-        }
+    bool getState() const
+    {
+        return state;
+    }
 
-        void turnOff()
-        {
-            state = false;
-        }
+    int getOutputNumber() const
+    {
+        return outputNumber;
+    }
+    void setOutputNumber(int number)
+    {
+        outputNumber = number;
+    }
+    int getProtocolId() const
+    {
+        return protocolId;
+    }
+    void setProtocolId(int id)
+    {
+        protocolId = id;
+    }
+    int getRoomId() const
+    {
+        return roomId;
+    }
+    void setRoomId(int id)
+    {
+        roomId = id;
+    }
 
-        bool getState ()const
-        {
-            return state;
-        }
-    };
+
+  
+};
