@@ -1,12 +1,34 @@
 #pragma once
-#include <string>
-#include <vector>
-#include "Light.h"
 
-class SubController {
+class Controller
+{
+private:
+    int id;
+    int roomId;
+
 public:
-    std::string id;            // sub_07
-    std::string mac;           // عنوان MAC الخاص بالESP
-    int channel;               // عدد المخرجات / القنوات
-    std::vector<Light> lights; // مصابيح متصلة بالجهاز
+    Controller(int id, int roomId)
+        : id(id), roomId(roomId)
+    {
+    }
+
+    int getId() const
+    {
+        return id;
+    }
+
+    void setId(int id)
+    {
+        this->id = id;
+    }
+
+    int getRoomId() const
+    {
+        return roomId;
+    }
+
+    void setRoomId(int roomId)
+    {
+        this->roomId = roomId;
+    }
 };
