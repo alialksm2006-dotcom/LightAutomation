@@ -3,7 +3,6 @@
 class ButtonSource : public ControllerSource
 {
 
-
 public:
     enum class Type
     {
@@ -11,6 +10,17 @@ public:
         switch_ = 1
     };
 
-    private:
-Type type;
+private:
+    Type type;
+
+public:
+    Type getType() const
+    {
+        return type;
+    }
+
+    void setType(Type type)
+    {
+        this->type = type;
+    }
 };
