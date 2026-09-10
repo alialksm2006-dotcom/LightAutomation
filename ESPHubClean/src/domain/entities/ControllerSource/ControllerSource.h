@@ -37,4 +37,6 @@ public:
     {
         this->controllerId = controllerId;
     }
+    virtual std::string getDetails() const = 0;
+    
 };

@@ -3,6 +3,7 @@
 #include <ports/IRepoPort.h>
 #include <ports/IRepoSwitch.h>
 #include <ArduinoJson.h>
+#include "ControlSourcesPage.h"
 
 class MainPage
 {
@@ -68,19 +69,16 @@ private:
   }
 
 public:
-  MainPage( ) : server(80)
+  MainPage() : server(80)
   {
   }
 
-  void begin()
+  void showMainPage()
   {
-    
-    server.on("/", HTTP_GET, [this]
-              {
-      server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-      server.send(200, "text/html", "");
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html", "");
 
-      server.sendContent(R"rawliteral(<!doctype html>
+    server.sendContent(R"rawliteral(<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -472,7 +470,7 @@ tr:hover {
       <ul>
         <li onclick="showDevices()">Devices</li>
         <li onclick="showRooms()">Rooms</li>
-        <li onclick="showControllerSources()">Controller Sources</li>
+        <li onclick="showItem('/showControlSources')">Control Sources</li>
         <li onclick="showControllers()">Controllers</li>
         <li onclick="showProtocols()">Protocols</li>
       </ul>
@@ -482,17 +480,15 @@ tr:hover {
     <div class="main">
       <!-- TOPBAR -->
       <div class="topbar">
-        <h2>Devices</h2>
-        <div>
           <span class="status">● Connected</span>
-          <button class="btn" onclick="openModal()">+ Add Device</button>
-        </div>
-      </div>)rawliteral");
+      </div>
+      <div id="content">)rawliteral");
 
-      getTable();
+    getTable();
 
-      server.sendContent(R"rawliteral(
+    server.sendContent(R"rawliteral(
       <!-- GRID -->
+    </div>
     </div>
 
     <!-- MODAL -->
@@ -555,6 +551,43 @@ tr:hover {
     <script>
 
       /* ================== MODAL ================== */
+
+        let selectedItem = "Devices";
+    function showItem(url)
+    {
+    switch (url) {
+        case "/showControlSources":
+            selectedItem = "Control Sources";
+            break;
+
+        case "/showDevices":
+            selectedItem = "Devices";
+            break;
+
+        case "/showRooms":
+            selectedItem = "Rooms";
+            break;
+
+        case "/showControllers":
+            selectedItem = "Controllers";
+            break;
+
+        case "/showProtocols":
+            selectedItem = "Protocols";
+            break;
+
+        default:
+            selectedItem = "";
+    }
+    fetch(url)
+    .then(response=>response.text())
+    .then(html=>showContent(html))
+        }
+
+      function showContent(html) {
+   
+        document.getElementById("content").innerHTML = html;
+    }
       function openModal() {
         document.getElementById("modal").style.display = "flex";
         onProtocolChange();
@@ -601,79 +634,124 @@ tr:hover {
         setTimeout(() => (t.style.display = "none"), 2000);
       }
 
-      /* ================== ADD ================== */
-      function addDevice() {
-        const name = document.getElementById("name").value.trim();
-        const room = document.getElementById("room").value.trim();
-        const controllerId = document.getElementById("controllerId").value.trim();
-        const protocol = document.getElementById("protocol").value;
-        const mac = document.getElementById("mac").value.trim();
-        const pin = document.getElementById("pin").value.trim();
-const switchPin = document.getElementById("switchPin").value.trim();
 
-        if (!name || !room || !controllerId || !pin||!switchPin) {
-          showToast("Please fill all required fields");
-          return;
+
+      function addDeviceEntity() {
+
+    const name = document.getElementById("name").value.trim();
+    const room = document.getElementById("room").value.trim();
+    const controllerId = document.getElementById("controllerId").value.trim();
+    const protocol = document.getElementById("protocol").value;
+    const mac = document.getElementById("mac").value.trim();
+    const pin = document.getElementById("pin").value.trim();
+    const switchPin = document.getElementById("switchPin").value.trim();
+
+    if (!name || !room || !controllerId || !pin || !switchPin) {
+        showToast("Please fill all required fields");
+        return;
+    }
+
+    if (protocol === "ESP-NOW" && !isValidMac(mac)) {
+        showToast("Enter a valid MAC like AA:BB:CC:DD:EE:FF");
+        return;
+    }
+
+    const payload = {
+        name,
+        room,
+        controllerId: parseInt(controllerId),
+        protocol,
+        mac: protocol === "ESP-NOW" ? mac : "",
+        pin: parseInt(pin),
+        switchPin: parseInt(switchPin),
+        state: false
+    };
+
+    fetch("/api/device/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(async (res) => {
+
+        if (!res.ok) {
+            const msg = await res.text();
+            throw new Error(msg || "Failed to add device");
         }
 
-        if (protocol === "ESP-NOW" && !isValidMac(mac)) {
-          showToast("Enter a valid MAC like AA:BB:CC:DD:EE:FF");
-          return;
+        return res.text();
+    })
+    .then(() => {
+
+        closeModal();
+        showToast("Device added");
+
+        return fetch("/api/switch/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                switchPin: parseInt(switchPin)
+            })
+        });
+    })
+    .then(async (res) => {
+
+        if (!res.ok) {
+            const msg = await res.text();
+            throw new Error(msg || "Failed to add switch");
         }
 
+        return res.text();
+    })
+    .then(() => {
+        showToast("Device and Switch added successfully");
+        location.reload();
+    })
+    .catch((err) => {
+        showToast(err.message);
+    });
+}
 
-        const payload = {
-          name,
-          room,
-          controllerId: parseInt(controllerId),
-          protocol,
-          mac: protocol === "ESP-NOW" ? mac : "",
-          pin: parseInt(pin),
-            switchPin: parseInt(switchPin),
-          state: false
-        };
 
-       fetch("/api/device/add", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(payload)
-})
-  
-.then(() => {
-  closeModal();
-  showToast("Device added");
-  location.reload();
-});
-      
+     function addDevice() {
 
-      fetch("/api/switch/add", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    switchPin: parseInt(switchPin)
-  })
-})
-.then(async (res) => {
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || "Failed to add switch");
-  }
-  return res.text();
-})
-.then(() => {
-  showToast("Switch added successfully");
-  location.reload();
-})
-.catch((err) => {
-  showToast(err.message);
-});
-      }
+    switch (selectedItem) {
 
-     
+        case "Devices":
+            addDeviceEntity();
+            break;
+
+        case "Control Sources":
+            addControlSourceEntity();
+            break;
+
+        case "Controllers":
+            addControllerEntiy();
+            break;
+
+        case "Rooms":
+            addRoomEntity();
+            break;
+
+        case "Protocols":
+            addProtocolEntity();
+            break;
+
+        default:
+            showToast("Unknown item selected");
+            break;
+    }
+}
+
+
+     function showControlSources()
+     {
+     fetch("/showControlSources",HTTP_GET);
+     }
 
       function deleteDevice(id) {
   if (!confirm("Delete this device?")) return;
@@ -702,128 +780,134 @@ const switchPin = document.getElementById("switchPin").value.trim();
     </script>
   </body>
 </html>
-)rawliteral"); });
- 
-    server.on("/api/device/add", HTTP_POST, [this]()
-              {
-  String body = server.arg("plain");
-
-  Serial.println("API HIT");
-  Serial.println(body);
-DynamicJsonDocument doc(512);
-
-
-  DeserializationError error = deserializeJson(doc, body);
-  
-
-
-  if (error)
-  {
-    server.send(400, "text/plain", "Invalid JSON");
-    return;
+)rawliteral");
   }
 
-
-  String name = doc["name"].as<String>();
-
-
-  String room = doc["room"].as<String>();
-
-
-  int controllerId = doc["controllerId"] | 0;
-
-  String protocol = doc["protocol"].as<String>();
-  String mac = doc["mac"].as<String>();
-
-  int pin = doc["pin"] | 0;
-
-  Serial.println("Heap befor ");
-  Serial.println(ESP.getFreeHeap());
-
- 
-
-  if (protocol == "GPIO")
+  void addDevice()
   {
+    String body = server.arg("plain");
 
+    Serial.println("API HIT");
+    Serial.println(body);
+    DynamicJsonDocument doc(512);
 
+    DeserializationError error = deserializeJson(doc, body);
 
-    
-  }
-  else if (protocol == "ESP-NOW")
-  {
-    uint8_t macBytes[6];
-    if (!parseMac(mac, macBytes))
+    if (error)
     {
-      server.send(400, "text/plain", "Invalid MAC");
+      server.send(400, "text/plain", "Invalid JSON");
       return;
     }
+
+    String name = doc["name"].as<String>();
+
+    String room = doc["room"].as<String>();
+
+    int controllerId = doc["controllerId"] | 0;
+
+    String protocol = doc["protocol"].as<String>();
+    String mac = doc["mac"].as<String>();
+
+    int pin = doc["pin"] | 0;
+
+    Serial.println("Heap befor ");
+    Serial.println(ESP.getFreeHeap());
+
+    if (protocol == "GPIO")
+    {
+    }
+    else if (protocol == "ESP-NOW")
+    {
+      uint8_t macBytes[6];
+      if (!parseMac(mac, macBytes))
+      {
+        server.send(400, "text/plain", "Invalid MAC");
+        return;
+      }
+    }
+    else
+    {
+      server.send(400, "text/plain", "Unknown protocol");
+      return;
+    }
+
+    server.send(200, "text/plain", "OK");
   }
-  else
+
+  void deleteDevice()
   {
-    server.send(400, "text/plain", "Unknown protocol");
-    return;
+    String body = server.arg("plain");
+    DynamicJsonDocument doc(256);
+
+    DeserializationError error = deserializeJson(doc, body);
+    if (error)
+    {
+      server.send(400, "text/plain", "Invalid JSON");
+      return;
+    }
+    uint32_t id = doc["id"] | 0;
+
+    bool removed = false;
+
+    if (!removed)
+    {
+      server.send(404, "text/plain", "Device not found");
+      return;
+    }
+
+    server.send(200, "text/plain", "OK");
   }
 
+  void addSwitch()
+  {
+    String body = server.arg("plain");
 
+    DynamicJsonDocument doc(256);
+    DeserializationError error = deserializeJson(doc, body);
 
-  server.send(200, "text/plain", "OK"); });
+    if (error)
+    {
+      server.send(400, "text/plain", "Invalid JSON");
+      return;
+    }
 
-  //////////////////////////////////////////////////
-  //////////////////////////////////////////////////
+    uint32_t deviceId = nextId - 1;
+    int switchPin = doc["switchPin"] | -1;
+
+    if (deviceId == 0 || switchPin < 0)
+    {
+      server.send(400, "text/plain", "Missing or invalid fields");
+      return;
+    }
+
+    server.send(200, "text/plain", "OK");
+  }
+
+  void begin()
+  {
+
+    WiFi.begin("Ali", "111111111");
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      Serial.println("Connecting");
+      delay(500);
+    }
+    Serial.println(WiFi.localIP());
+
+    server.on("/", HTTP_GET, [this]
+              { showMainPage(); });
+
+    server.on("/showControlSources", HTTP_GET, [this]()
+              { ControlSourcesPage::show(&server); });
+    server.on("/showDevices", HTTP_GET, []() {});
+    server.on("/showRooms", HTTP_GET, []() {});
+    server.on("/api/device/add", HTTP_POST, [this]()
+              { addDevice(); });
 
     server.on("/api/device/delete", HTTP_POST, [this]()
-              {
-  String body = server.arg("plain");
-  DynamicJsonDocument doc(256);
+              { deleteDevice(); });
 
-  DeserializationError error = deserializeJson(doc, body);
-  if (error)
-  {
-    server.send(400, "text/plain", "Invalid JSON");
-    return;
-  }
-  uint32_t id = doc["id"] | 0;
-
-  bool removed = false;
-
-  if (!removed)
-  {
-    server.send(404, "text/plain", "Device not found");
-    return;
-  }
-
-  server.send(200, "text/plain", "OK"); });
-
-  //////////////////////////////////////////////
-  //////////////////////////////////////////////
-
-  server.on("/api/switch/add", HTTP_POST, [this]()
-{
-  String body = server.arg("plain");
-
-  DynamicJsonDocument doc(256);
-  DeserializationError error = deserializeJson(doc, body);
-
-  if (error)
-  {
-    server.send(400, "text/plain", "Invalid JSON");
-    return;
-  }
-
-  uint32_t deviceId = nextId-1;
-  int switchPin = doc["switchPin"] | -1;
-
-  if (deviceId == 0 || switchPin < 0)
-  {
-    server.send(400, "text/plain", "Missing or invalid fields");
-    return;
-  }
-
-
-  server.send(200, "text/plain", "OK");
-});
-//////////////////////////////////
-//////////////////////////////////
+    server.on("/api/switch/add", HTTP_POST, [this]() {});
 
     server.begin();
   }

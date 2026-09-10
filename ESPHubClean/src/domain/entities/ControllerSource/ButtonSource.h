@@ -6,8 +6,8 @@ class ButtonSource : public ControllerSource
 public:
     enum class Type
     {
-        push = 0,
-        switch_ = 1
+        PUSH = 0,
+        SWITCH = 1
     };
 
 private:
@@ -22,5 +22,17 @@ public:
     void setType(Type type)
     {
         this->type = type;
+    }
+    std::string getDetails() const override
+    {
+        switch (type)
+        {
+        case Type::PUSH:
+            return "PUSH";
+        case Type::SWITCH:
+            return "SWITCH";
+        default:
+            return "UNKNOWN";
+        }
     }
 };
