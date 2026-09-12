@@ -2,9 +2,9 @@
 #include <WebServer.h>
 class GlobalStyle
 {
+  public:
 static void sendStyle(WebServer * server) {
     server->sendContent(R"rawliteral(
-<style>
   * {
     margin: 0;
     padding: 0;
@@ -24,7 +24,6 @@ static void sendStyle(WebServer * server) {
     padding: 0;
   }
 
-</style>
 )rawliteral");
 }
 };

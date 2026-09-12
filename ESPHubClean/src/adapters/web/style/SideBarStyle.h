@@ -2,11 +2,11 @@
 #include <WebServer.h>
 class SideBarStyle
 {
+  public:
     static void sendStyle(WebServer * server)
     {
 
         server->sendContent(R"rawliteral(
-<style>
   .sidebar {
     width: 250px;
     position: fixed;
@@ -45,7 +45,6 @@ class SideBarStyle
         transform: scale(1.05);
       }
 
-</style>
 )rawliteral");
     }
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include <WebServer.h>
 
-class TopbarStyle
+class TopBarStyle
 {
 public:
     static void sendStyle(WebServer* server)

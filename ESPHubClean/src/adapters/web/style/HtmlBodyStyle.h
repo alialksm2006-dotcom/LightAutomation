@@ -1,7 +1,7 @@
 #pragma once
 #include<WebServer.h>
 class HtmlBodyStyle
-{
+{public:
     static void sendStyle(WebServer *server)
 {
     server->sendContent(R"rawliteral(
