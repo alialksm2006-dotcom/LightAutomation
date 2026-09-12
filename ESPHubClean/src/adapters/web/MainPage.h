@@ -88,26 +88,6 @@ public:
     <style>
      
 
-      /* ================== SIDEBAR ================== */
-    .sidebar {
-    width: 250px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    padding: 20px;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-
-    /* اللون ثابت شبه شفاف بدون blur */
-    background-color: rgba(17, 24, 39, 0.95); 
-
-    overflow-y: auto;
-
-    /* جبر إنشاء طبقة compositing لتقليل وميض */
-    transform: translate3d(0,0,0);
-    will-change: transform, background-color;
-}
-
 html, body {
     overscroll-behavior: none; /* يمنع ال-bounce عند التمرير */
     -webkit-overflow-scrolling: auto; /* لأجهزة iOS */
