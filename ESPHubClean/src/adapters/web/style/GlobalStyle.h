@@ -2,7 +2,7 @@
 #include <WebServer.h>
 class GlobalStyle
 {
-void sendStyle(WebServer * server) {
+static void sendStyle(WebServer * server) {
     server->sendContent(R"rawliteral(
 <style>
   * {
