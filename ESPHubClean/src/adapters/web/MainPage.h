@@ -86,23 +86,7 @@ public:
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
-      /* ================== GLOBAL ================== */
-      /* النجمة تعني تحديد جميع العناصر في الصفحة 
-      أي قاعدة توضع هنا ستطبق على كل شيء: <div>, <p>, <h1>, <button>… */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Segoe UI", sans-serif;
-      }
-
-    body {
-  background: linear-gradient(135deg, #0f172a, #020617);
-  color: white;
-  display: flex;
-  margin: 0;
-  padding: 0;   
-}
+     
 
       /* ================== SIDEBAR ================== */
     .sidebar {
