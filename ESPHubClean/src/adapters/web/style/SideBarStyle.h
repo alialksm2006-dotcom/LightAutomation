@@ -23,6 +23,28 @@ class SideBarStyle
     transform: translate3d(0,0,0);
     will-change: transform, background-color;
   }
+    .sidebar h2 {
+        margin-bottom: 30px;
+        color: #38bdf8;
+      }
+
+      .sidebar ul {
+        list-style: none;
+      }
+
+      .sidebar li {
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.5s;
+      }
+
+      .sidebar li:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+      }
+
 </style>
 )rawliteral");
     }
