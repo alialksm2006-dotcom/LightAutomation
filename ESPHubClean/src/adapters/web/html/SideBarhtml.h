@@ -16,6 +16,7 @@ static void sendHtml()
            <li>Item1</li>
            <li>Item2</</li>
           </ul>
+          </li>
         <li onclick="showControllers()">Controllers</li>
         <li onclick="showProtocols()">Protocols</li>
       </ul>
