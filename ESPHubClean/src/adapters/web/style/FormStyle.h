@@ -1,12 +1,10 @@
 #pragma once
-#include <WebServer.h>
-
 class FormStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             .form-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;

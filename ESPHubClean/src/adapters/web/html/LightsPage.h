@@ -1,12 +1,11 @@
 #pragma once
-#include <WebServer.h>
+#include "adapters/api/EspServer.h"
 class LightsPage
 {
 public:
-    static void sendTable(WebServer *server)
+    static void sendTable()
   {
-
-    server->sendContent(R"rawliteral(
+   EspServer::server.sendContent(R"rawliteral(
 <table>
   <tr>
     <th>ID</th>
@@ -39,13 +38,13 @@ public:
     //   server.sendContent("</tr>");
     // }
 
-    server->sendContent("</table>");
+    EspServer::server.sendContent("</table>");
   }
 
 
-  static void sendAddLightModal(WebServer *server )
+  static void sendAddLightModal( )
   {
-server->sendContent(R"rawliteral(
+EspServer::server.sendContent(R"rawliteral(
     
     <div class="modal" id="modal">
       <div class="modal-content">

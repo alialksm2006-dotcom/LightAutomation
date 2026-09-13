@@ -4,9 +4,9 @@
 class CardStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+        EspServer::server.sendContent(R"rawliteral(
             .card {
                 background: rgba(255, 255, 255, 0.05);
                 padding: 20px;

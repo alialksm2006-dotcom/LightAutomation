@@ -1,28 +1,28 @@
 #pragma once
-#include <WebServer.h>
-#include <ports/IRepoPort.h>
-#include <ports/IRepoSwitch.h>
+
+
 #include <ArduinoJson.h>
-#include "ControlSourcesPage.h"
 #include "LightsPage.h"
 #include "adapters/web/style/MainStyle.h"
+#include "adapters/web/html/SideBarhtml.h"
+
 
 class MainPage
 {
 private:
-  WebServer server;
+ 
 
 public:
-  MainPage() : server(80)
+  MainPage() 
   {
   }
 
-  void showMainPage()
+ static  void showMainPage()
   {
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send(200, "text/html", "");
+    EspServer::server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    EspServer::server.send(200, "text/html", "");
 
-    server.sendContent(R"rawliteral(<!doctype html>
+    EspServer::server.sendContent(R"rawliteral(<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -31,8 +31,8 @@ public:
 
     <style>
     )rawliteral");
-MainStyle::sendAllStyles(&server);
-    server.sendContent(R"rawliteral(
+MainStyle::sendAllStyles();
+     EspServer::server.sendContent(R"rawliteral(
     </style>
   </head>
 
@@ -45,22 +45,26 @@ MainStyle::sendAllStyles(&server);
           <span class="status">● Connected</span>
       </div>
 
+      <div class="btn">
+      <button>Add</button>
+      </div>
       <div id="content">)rawliteral");
 
-    LightsPage::sendTable(&server);
+    LightsPage::sendTable();
 
-    server.sendContent(R"rawliteral(
+     EspServer::server.sendContent(R"rawliteral(
     </div>
     </div>
     )rawliteral");
 
 
 
-        LightsPage::sendAddLightModal(&server);
-   server.sendContent("<div class=\"toast\" id=\"toast\"></div>");
+        LightsPage::sendAddLightModal();
+    EspServer::server.sendContent("<div class=\"toast\" id=\"toast\"></div>");
 
+    SideBarhtml::sendHtml();
 
-    server.sendContent("<script>");
+     EspServer::server.sendContent("<script>");
 
     
 
@@ -69,32 +73,14 @@ MainStyle::sendAllStyles(&server);
      
   
       
-    server.sendContent("</script>");
-  server.sendContent("</body>");
-  server.sendContent("</html>");
+     EspServer::server.sendContent("</script>");
+   EspServer::server.sendContent("</body>");
+   EspServer::server.sendContent("</html>");
 
   }
 
 
-  void begin()
-  {
+  
 
-    WiFi.begin("Ali", "111111111");
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      Serial.println("Connecting");
-      delay(500);
-    }
-    Serial.println(WiFi.localIP());
-
-   
-
-
-    server.begin();
-  }
-
-  void handle()
-  {
-    server.handleClient();
-  }
+ 
 };

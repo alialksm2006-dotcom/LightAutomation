@@ -1,5 +1,5 @@
 #pragma once
-#include "adapters/web/MainPage.h"
+
 #include "adapters/storage/LightsRepo.h"
 #include "adapters/MyRemoteXY.h"
 #include "infrastructure/EspNowConnection.h"
@@ -20,7 +20,7 @@
 // #include "adapters/web/WebServerAdapter.h"
 // #include "adapters/storage/SwitchesRepo.h"
 #include <vector>
-
+#include "adapters/api/MainApi.h"
 
 class Manager
 {
@@ -83,13 +83,13 @@ public:
         // {
         //     device.executeConnection->init(device.lightConnectionData);
         // }
-        mainPage.begin();
+        MainApi::begin();
 
     }
 
     void update()
     {
-        mainPage.handle();
+        MainApi::handle();
         // remoteXY.loop();
         // blynkAdapter.run();
         // switchesRepo.update(toggleUseCase);

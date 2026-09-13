@@ -2,9 +2,9 @@
 #include<WebServer.h>
 class HtmlBodyStyle
 {public:
-    static void sendStyle(WebServer *server)
+    static void sendStyle()
 {
-    server->sendContent(R"rawliteral(
+     EspServer::server.sendContent(R"rawliteral(
   html, body {
     overscroll-behavior: none; 
     -webkit-overflow-scrolling: auto; 

@@ -4,9 +4,9 @@
 class SwitchStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             .switch {
                 width: 50px;
                 height: 25px;

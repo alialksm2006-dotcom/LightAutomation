@@ -4,9 +4,9 @@
 class TableStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             table {
                 width: 100%;
                 border-collapse: collapse;

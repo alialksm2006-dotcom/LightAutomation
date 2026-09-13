@@ -4,9 +4,9 @@
 class GridStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             .grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

@@ -3,10 +3,10 @@
 class SideBarStyle
 {
   public:
-    static void sendStyle(WebServer * server)
+    static void sendStyle()
     {
 
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
   .sidebar {
     width: 250px;
     position: fixed;

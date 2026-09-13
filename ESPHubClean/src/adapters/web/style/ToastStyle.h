@@ -4,9 +4,9 @@
 class ToastStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             .toast {
                 position: fixed;
                 bottom: 20px;

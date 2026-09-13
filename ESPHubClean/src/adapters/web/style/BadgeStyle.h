@@ -4,9 +4,9 @@
 class BadgeStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+        EspServer::server.sendContent(R"rawliteral(
             .state-badge {
                 padding: 4px 10px;
                 border-radius: 12px;

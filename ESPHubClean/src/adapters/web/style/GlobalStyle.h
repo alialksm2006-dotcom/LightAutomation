@@ -3,8 +3,8 @@
 class GlobalStyle
 {
   public:
-static void sendStyle(WebServer * server) {
-    server->sendContent(R"rawliteral(
+static void sendStyle() {
+     EspServer::server.sendContent(R"rawliteral(
   * {
     margin: 0;
     padding: 0;

@@ -13,7 +13,7 @@
 #include "adapters/web/style/TableStyle.h"
 #include "adapters/web/style/ToastStyle.h"
 #include "adapters/web/style/TopBarStyle.h"
-
+#include "adapters/api/EspServer.h"
 
 
 
@@ -26,9 +26,9 @@
 class MainStyle
 {
   public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
   .main {
     flex: 1;
     padding: 20px;
@@ -37,22 +37,23 @@ class MainStyle
 )rawliteral");
     }
 
-    static void sendAllStyles(WebServer* server)
+    static void sendAllStyles()
     {
-BadgeStyle::sendStyle(server);
-ButtonStyle::sendStyle(server);
-CardStyle::sendStyle(server);
-FormStyle::sendStyle(server);
-GlobalStyle::sendStyle(server);
-GridStyle::sendStyle(server);
-HtmlBodyStyle::sendStyle(server);
-sendStyle(server);
-ModalStyle::sendStyle(server);
-SideBarStyle::sendStyle(server);
-SwitchStyle::sendStyle(server);
-TableStyle::sendStyle(server);
-ToastStyle::sendStyle(server);
-TopBarStyle::sendStyle(server);
+       
+BadgeStyle::sendStyle();
+ButtonStyle::sendStyle();
+CardStyle::sendStyle();
+FormStyle::sendStyle();
+GlobalStyle::sendStyle();
+GridStyle::sendStyle();
+HtmlBodyStyle::sendStyle();
+sendStyle();
+ModalStyle::sendStyle( );
+SideBarStyle::sendStyle( );
+SwitchStyle::sendStyle( );
+TableStyle::sendStyle( );
+ToastStyle::sendStyle( );
+TopBarStyle::sendStyle( );
 
     }
 };

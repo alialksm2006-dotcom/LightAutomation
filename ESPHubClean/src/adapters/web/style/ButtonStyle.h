@@ -4,9 +4,9 @@
 class ButtonStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
 
 .btn {
     padding: 10px 16px;

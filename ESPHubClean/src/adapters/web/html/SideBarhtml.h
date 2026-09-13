@@ -1,9 +1,10 @@
 #pragma once
-#include <WebServer.h>
+#include "adapters/api/EspServer.h"
 class SideBarhtml{
-static void sendHtml(WebServer* server)
+  public:
+static void sendHtml()
 {
-    server->sendContent(R"rawliteral(
+    EspServer::server.sendContent(R"rawliteral(
         
     <div class="sidebar">
       <h2>Smart Home</h2>

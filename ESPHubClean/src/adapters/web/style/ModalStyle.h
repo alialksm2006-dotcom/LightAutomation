@@ -4,9 +4,9 @@
 class ModalStyle
 {
 public:
-    static void sendStyle(WebServer* server)
+    static void sendStyle()
     {
-        server->sendContent(R"rawliteral(
+         EspServer::server.sendContent(R"rawliteral(
             .modal {
                 position: fixed;
                 inset: 0;
