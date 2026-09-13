@@ -1,7 +1,8 @@
 #pragma once
-#include <WebServer.h>
+#include <adapters/api/EspServer.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include "adapters/web/html/LightsPage.h"/
 
 class LightsApi
 {
@@ -59,5 +60,9 @@ static void beginAddDeviceApi(WebServer* server)
 //  server->on("/api/device/add", HTTP_POST, []()
 //               { addDevice(server); });
 
+}
+static void begin()
+{
+  EspServer::server.on("/devices/show",HTTP_GET,LightsPage::sendTable);
 }
 };

@@ -16,6 +16,9 @@ public:
             .status {
                 color: #22c55e;
             }
+
+
+            
         )rawliteral");
     }
 };

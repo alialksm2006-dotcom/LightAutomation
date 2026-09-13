@@ -1,6 +1,7 @@
 #pragma once 
 #include "ShowPagesApi.h"
 #include "ControlSourcesApi.h"
+#include "LightsApi.h"
 class MainApi
 {
 public:
@@ -16,6 +17,7 @@ public:
 
         ShowPagesApi::begin();
         ControlSourceApi::begin();
+        LightsApi::begin();
         EspServer::server.begin();
 
 }

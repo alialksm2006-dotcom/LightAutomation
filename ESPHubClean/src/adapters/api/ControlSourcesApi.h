@@ -1,5 +1,6 @@
 #pragma once
 #include "EspServer.h"
+#include "adapters/web/html/ControlSourcesPage.h"
 class ControlSourceApi
 {
     private:
@@ -19,7 +20,8 @@ class ControlSourceApi
    static void begin()
     {
         EspServer::server.on("/ControlSources/add",HTTP_POST,add);
-        EspServer::server.on("/showControlSources",HTTP_GET,show);
+        EspServer::server.on("/ControlSources/showAdd",HTTP_GET,ControlSourcesPage::showAdd);
+        EspServer::server.on("/showControlSources",HTTP_GET,ControlSourcesPage::show);
     }
     
     

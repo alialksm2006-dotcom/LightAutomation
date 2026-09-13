@@ -7,10 +7,10 @@ class ControlSourcesPage
 {
 public:
 
-  static void show(WebServer *server)
+  static void show()
 {
-    server->setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server->sendContent(R"rawliteral(
+     EspServer::server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+     EspServer::server.sendContent(R"rawliteral(
         <h3>Control Sources</h3>
 
         <table border="1">
@@ -28,39 +28,53 @@ public:
 
     for (const auto& source : ControllerSourceStorage::getAll())
     {
-        server->sendContent("<tr>");
+         EspServer::server.sendContent("<tr>");
 
-        server->sendContent("<td>");
-        server->sendContent(String(source->getId()));
-        server->sendContent("</td>");
+         EspServer::server.sendContent("<td>");
+         EspServer::server.sendContent(String(source->getId()));
+         EspServer::server.sendContent("</td>");
 
-        server->sendContent("<td>");
-        server->sendContent(String(source->getPinNumber()));
-        server->sendContent("</td>");
+         EspServer::server.sendContent("<td>");
+         EspServer::server.sendContent(String(source->getPinNumber()));
+         EspServer::server.sendContent("</td>");
 
-        server->sendContent("<td>");
-        server->sendContent(String(source->getControllerId()));
-        server->sendContent("</td>");
+         EspServer::server.sendContent("<td>");
+         EspServer::server.sendContent(String(source->getControllerId()));
+         EspServer::server.sendContent("</td>");
 
-        server->sendContent("<td>");
+         EspServer::server.sendContent("<td>");
 
         std::string details = source->getDetails();
-        server->sendContent(details.c_str());
+         EspServer::server.sendContent(details.c_str());
 
-        server->sendContent("</td>");
+         EspServer::server.sendContent("</td>");
 
-        server->sendContent(R"rawliteral(<td> 
+         EspServer::server.sendContent(R"rawliteral(<td> 
               <button class='btn'>-Delete</button> 
                </td>
         )rawliteral");
 
-        server->sendContent("</tr>");
+         EspServer::server.sendContent("</tr>");
     }
 
-    server->sendContent(R"rawliteral(
+     EspServer::server.sendContent(R"rawliteral(
             </tbody>
         </table>
     )rawliteral");
+}
+
+static void showAdd()
+{
+EspServer::server.sendContent(R"rawliteral(
+    <dialog  id="addControlSourceModal">
+<p>test dialog</p>
+    </dialog>
+    
+    )rawliteral");
+}
+static void begin()
+{
+    showAdd();
 }
 
 };
