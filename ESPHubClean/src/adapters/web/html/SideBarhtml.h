@@ -11,7 +11,8 @@ static void sendHtml()
       <ul>
         <li onclick="showDevices()">Devices</li>
         <li onclick="showRooms()">Rooms</li>
-        <li onclick="showItem('/showControlSources')">Control Sources
+        <li>
+        <span onclick="showItem('/showControlSources')">Control Sources</span>
           <ul>
            <li>Item1</li>
            <li>Item2</</li>
