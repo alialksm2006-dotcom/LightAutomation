@@ -3,9 +3,9 @@
 class MainScript
 {
 public :
-static void sendMainScript(WebServer* server)
+static void sendMainScript()
 {
-    server->sendContent(R"rawliteral(
+     EspServer::server.sendContent(R"rawliteral(
          
 
         let selectedItem = "Devices";

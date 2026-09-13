@@ -1,5 +1,6 @@
 #pragma once 
 #include "ShowPagesApi.h"
+#include "ControlSourcesApi.h"
 class MainApi
 {
 public:
@@ -14,6 +15,7 @@ public:
         Serial.println(WiFi.localIP());
 
         ShowPagesApi::begin();
+        ControlSourceApi::begin();
         EspServer::server.begin();
 
 }

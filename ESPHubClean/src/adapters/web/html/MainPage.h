@@ -5,6 +5,7 @@
 #include "LightsPage.h"
 #include "adapters/web/style/MainStyle.h"
 #include "adapters/web/html/SideBarhtml.h"
+#include "adapters/web/script/MainScript.h"
 
 
 class MainPage
@@ -43,11 +44,9 @@ MainStyle::sendAllStyles();
   
       <div class="topbar">
           <span class="status">● Connected</span>
+          <button class="btn" id="addButton">Add</button>
       </div>
 
-      <div class="btn">
-      <button>Add</button>
-      </div>
       <div id="content">)rawliteral");
 
     LightsPage::sendTable();
@@ -65,8 +64,8 @@ MainStyle::sendAllStyles();
     SideBarhtml::sendHtml();
 
      EspServer::server.sendContent("<script>");
-
-    
+     
+    MainScript::sendMainScript();
 
 
 

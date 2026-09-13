@@ -11,7 +11,11 @@ static void sendHtml()
       <ul>
         <li onclick="showDevices()">Devices</li>
         <li onclick="showRooms()">Rooms</li>
-        <li onclick="showItem('/showControlSources')">Control Sources</li>
+        <li onclick="showItem('/showControlSources')">Control Sources
+          <ul>
+           <li>Item1</li>
+           <li>Item2</</li>
+          </ul>
         <li onclick="showControllers()">Controllers</li>
         <li onclick="showProtocols()">Protocols</li>
       </ul>
