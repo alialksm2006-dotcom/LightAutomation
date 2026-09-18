@@ -14,7 +14,7 @@
 #include "adapters/web/style/ToastStyle.h"
 #include "adapters/web/style/TopBarStyle.h"
 #include "adapters/api/EspServer.h"
-
+#include "DialogModalStyle.h"
 
 
 
@@ -54,6 +54,7 @@ SwitchStyle::sendStyle( );
 TableStyle::sendStyle( );
 ToastStyle::sendStyle( );
 TopBarStyle::sendStyle( );
+DialogModalSyle::sendStyle();
 
     }
 };

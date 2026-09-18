@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
   <diagram name="Page-1" id="GksOzLfJqukElkOETdCO">
-    <mxGraphModel dx="1632" dy="584" grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3040" dy="1251" grid="0" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -161,7 +161,7 @@
         <mxCell id="0ALrt4dMjTRwVvLjnvQn-68" value="id" style="ellipse;whiteSpace=wrap;html=1;align=center;fontStyle=4;fontSize=19;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" parent="1" vertex="1">
           <mxGeometry x="46" y="720" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="0ALrt4dMjTRwVvLjnvQn-70" value="Relay&lt;br&gt;Number" style="ellipse;whiteSpace=wrap;html=1;align=center;fontSize=19;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" parent="1" vertex="1">
+        <mxCell id="0ALrt4dMjTRwVvLjnvQn-70" value="Pin Number" style="ellipse;whiteSpace=wrap;html=1;align=center;fontSize=19;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" parent="1" vertex="1">
           <mxGeometry x="71" y="782" width="100" height="56" as="geometry" />
         </mxCell>
         <mxCell id="0ALrt4dMjTRwVvLjnvQn-72" value="Type" style="ellipse;whiteSpace=wrap;html=1;align=center;fontSize=19;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" parent="1" vertex="1">
@@ -234,7 +234,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="0ALrt4dMjTRwVvLjnvQn-120" value="Controller Id" style="ellipse;whiteSpace=wrap;html=1;align=center;fontSize=19;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" parent="1" vertex="1">
-          <mxGeometry x="11" y="982" width="100" height="56" as="geometry" />
+          <mxGeometry x="46" y="917" width="100" height="56" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

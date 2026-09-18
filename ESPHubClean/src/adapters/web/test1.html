@@ -1,26 +1,25 @@
 <!DOCTYPE html>
-<html>
-    <head>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تجربة إرسال GET</title>
+</head>
+<body>
 
-    </head>
+    <form action="/search" method="get">
 
-    <body>
+        <label for="q">كلمة البحث:</label>
+        <input type="text" id="q" name="query" value="HTML Form">
 
-<dialog id="myDialog">
-            <p>هذه نافذة منبثقة باستخدام وسم dialog الجديد!</p>
-            <button id ="closeBtn">close</button>
-    
-</dialog>
+        <label for="cat">القسم:</label>
+        <select id="cat" name="category">
+            <option value="web" selected>تطوير الويب</option>
+            <option value="design">التصميم</option>
+        </select>
 
-<button id="openDialog">add</button>
-        <script>
+        <button type="submit">بحث</button>
 
-const dialog = document.getElementById('myDialog');
-const openBtn = document.getElementById('openDialog');
-const closeBtn = document.getElementById('closeBtn');
+    </form>
 
-openBtn.addEventListener('click',()=>{dialog.showModal();});
-closeBtn.addEventListener('click',()=>{dialog.close();});
-            </script>
-    </body>
+</body>
 </html>

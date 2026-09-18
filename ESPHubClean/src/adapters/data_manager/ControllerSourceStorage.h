@@ -7,39 +7,29 @@
 class ControllerSourceStorage
 {
 private:
-   static std::vector<std::unique_ptr<ControllerSource>> sources;
+    static std::vector<ControllerSource> sources;
     static int id;
 
 public:
-   ControllerSourceStorage()
+    ControllerSourceStorage()
     {
-}
+    }
 
-
-    bool add(ControllerSource *source)
+   static bool add(ControllerSource source)
     {
 
-        if (source == nullptr)
-        {
-            return false;
-        }
-
-        if (LightControllerSourceStorage::isControlSourceAssociatedWithLight(source->getId()))
-        {
-            return false;
-        }
         ++id;
-        source->setId(id);
+        source.setId(id);
 
         sources.emplace_back(source);
         return true;
     }
 
-    bool remove(int id)
+   static bool remove(int id)
     {
         for (auto it = sources.begin(); it != sources.end(); ++it)
         {
-            if ((*it)->getId() == id)
+            if ((*it).getId() == id)
             {
                 sources.erase(it);
                 return true;
@@ -48,8 +38,17 @@ public:
 
         return false;
     }
-   static  std::vector<std::unique_ptr<ControllerSource>> &getAll() 
+    static std::vector<ControllerSource> &getAll()
     {
         return sources;
+    }
+  static  bool isEsixt(int id)
+    {
+        for (const auto &source : sources)
+        {
+            if (source.getId() == id)
+                return true;
+        }
+        return false;
     }
 };

@@ -50,7 +50,8 @@ public:
     LightsPage::sendTable();
     EspServer::server.sendContent("  </div>");
     EspServer::server.sendContent("</div>");
-    LightsPage::sendAddLightModal();
+    // LightsPage::sendAddLightModal();
+    ControlSourcesPage::begin();
     EspServer::server.sendContent("<div class=\"toast\" id=\"toast\"></div>");
     SideBarhtml::sendHtml();
     ControlSourcesPage::showAdd();

@@ -1,6 +1,6 @@
 #pragma once
 #include "ControllerSource.h"
-class ButtonSource : public ControllerSource
+class ButtonSource 
 {
 
 public:
@@ -23,7 +23,7 @@ public:
     {
         this->type = type;
     }
-    std::string getDetails() const override
+    std::string getDetails() const 
     {
         switch (type)
         {

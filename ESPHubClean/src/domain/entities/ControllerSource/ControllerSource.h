@@ -8,7 +8,6 @@ private:
     int controllerId;
 
 public:
-    virtual ~ControllerSource() = default;
     int getId() const
     {
         return id;
@@ -37,6 +36,5 @@ public:
     {
         this->controllerId = controllerId;
     }
-    virtual std::string getDetails() const = 0;
     
 };

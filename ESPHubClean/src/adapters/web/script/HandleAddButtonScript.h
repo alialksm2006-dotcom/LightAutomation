@@ -9,12 +9,16 @@ EspServer::server.sendContent(R"rawliteral(
     {
     if (selectedItem=="Control Sources")
       {
-       fetch("/ControlSources/showAdd");
        const dialog = document.getElementById('addControlSourceModal');
        dialog.showModal();
        return ;
       }
     }
+
+    document.getElementById('addControlSourceModal').addEventListener('close', function() {
+    document.getElementById('controlSourceForm').reset();});
     )rawliteral");
+
+    
 }
 };
