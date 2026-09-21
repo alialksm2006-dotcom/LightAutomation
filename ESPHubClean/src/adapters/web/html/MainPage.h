@@ -7,6 +7,7 @@
 #include "adapters/web/script/MainScript.h"
 #include "adapters/web/script/HandleAddButtonScript.h"
 #include "ControlSourcesPage.h"
+#include "adapters/web/script/ControlSourcesScript.h"
 
 class MainPage
 {
@@ -47,16 +48,14 @@ public:
     EspServer::server.sendContent("    <button class=\"btn\" id=\"addButton\" onclick=\"handleAdd()\">Add</button>");
     EspServer::server.sendContent("  </div>");
     EspServer::server.sendContent("  <div id=\"content\">");
-    LightsPage::sendTable();
     EspServer::server.sendContent("  </div>");
     EspServer::server.sendContent("</div>");
     // LightsPage::sendAddLightModal();
     ControlSourcesPage::begin();
-    EspServer::server.sendContent("<div class=\"toast\" id=\"toast\"></div>");
     SideBarhtml::sendHtml();
-    ControlSourcesPage::showAdd();
     EspServer::server.sendContent("<script>");
     MainScript::sendMainScript();
+    ControlSourcesScript::send();
     HandleAddButtonScript::send();
     EspServer::server.sendContent("</script>");
     EspServer::server.sendContent("</body>");

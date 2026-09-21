@@ -8,6 +8,7 @@ class ControlSourcesPage
 public:
     static void show()
     {
+      Serial.println("here is show");
         EspServer::server.setContentLength(CONTENT_LENGTH_UNKNOWN);
         EspServer::server.sendContent(R"rawliteral(
         <h3>Control Sources</h3>
@@ -26,6 +27,7 @@ public:
 
         for (const auto &source : ControllerSourceStorage::getAll())
         {
+          String idStr = String(source.getId());
             EspServer::server.sendContent("<tr>");
 
             EspServer::server.sendContent("<td>");
@@ -40,16 +42,21 @@ public:
             EspServer::server.sendContent(String(source.getControllerId()));
             EspServer::server.sendContent("</td>");
 
-            EspServer::server.sendContent("<td>");
+EspServer::server.sendContent("<td>");
 
-           
+EspServer::server.sendContent(
+    "<button class='delete-btn' onclick='deleteControlSource(" +
+    idStr +
+    ")'>DELETE</button>"
+);
 
-            EspServer::server.sendContent("</td>");
+EspServer::server.sendContent(
+    "<button class='btn' onclick='editControlSource(" +
+    idStr +
+    ")'>Edit</button>"
+);
 
-            EspServer::server.sendContent(R"rawliteral(<td> 
-              <button class='btn'>-Delete</button> 
-               </td>
-        )rawliteral");
+EspServer::server.sendContent("</td>");
 
             EspServer::server.sendContent("</tr>");
         }
@@ -62,6 +69,7 @@ public:
 
     static void showAdd()
     {
+      Serial.println("here is show add");
         EspServer::server.sendContent(R"rawliteral(
    <dialog id="addControlSourceModal" class="modal-dialog">
   <div class="modal-content">
@@ -70,7 +78,7 @@ public:
       <button type="button" class="close-btn" onclick="document.getElementById('addControlSourceModal').close()">&times;</button>
     </div>
 
-    <form method="dialog" id="controlSourceForm">
+    <form id="controlSourceForm">
       <div class="form-group mb-14">
         <label for="pinNumber">PIN Number</label>
         <input type="number" id="pinNumber" name="pinNumber" placeholder="Enter Pin Number" required />
@@ -87,6 +95,9 @@ public:
       </div>
     </form>
   </div>
+
+  <div class="toast" id="toast"></div>
+
 </dialog>
     )rawliteral");
     }

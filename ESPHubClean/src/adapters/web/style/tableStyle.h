@@ -53,7 +53,11 @@ public:
             tr:hover {
                 background: rgba(56, 189, 248, 0.15);
                 cursor: default;
-            }
+            } 
+                
+            th:last-child, td:last-child {
+                                  text-align: center;
+           }
         )rawliteral");
     }
 };

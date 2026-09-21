@@ -2,6 +2,7 @@
 #include "ShowPagesApi.h"
 #include "ControlSourcesApi.h"
 #include "LightsApi.h"
+#include <ESPmDNS.h>
 class MainApi
 {
 public:
@@ -15,6 +16,7 @@ public:
         }
         Serial.println(WiFi.localIP());
 
+        MDNS.begin("smart");
         ShowPagesApi::begin();
         ControlSourceApi::begin();
         LightsApi::begin();

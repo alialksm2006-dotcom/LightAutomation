@@ -12,6 +12,8 @@ static void sendToastScript(WebServer * server)
         t.style.display = "block";
         setTimeout(() => (t.style.display = "none"), 2000);
       }
+
+      
 )rawliteral");
 }
 };

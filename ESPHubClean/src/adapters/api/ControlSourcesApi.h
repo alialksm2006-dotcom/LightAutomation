@@ -7,6 +7,7 @@ class ControlSourceApi
 private:
     static void add()
     {
+        Serial.println("start add");
         if (EspServer::server.hasArg("controllerId") && EspServer::server.hasArg("pinNumber"))
         {
             String pinStr = EspServer::server.arg("pinNumber");
@@ -14,27 +15,31 @@ private:
 
             int pinNumber = pinStr.toInt();
             int controllerId = cntrlerIdStr.toInt();
-            if (pinNumber != -1)
+            Serial.print("pin:" );
+            Serial.println(pinNumber);
+            Serial.print("crtlid:"  );
+            Serial.println(controllerId);
+
+            if (controllerId != -1)
             {
-                if (ControllerSourceStorage::isEsixt(controllerId))
+                Serial.println("pin number is mines 1");
+                if (!ControllerSourceStorage::isEsixt(controllerId))
                 {
                     EspServer::server.send(400, "text/plain", "please select found controller id,or enter -1");
                     return;
-
                 }
             }
             ControllerSource source;
             source.setPinNumber(pinNumber);
             source.setControllerId(controllerId);
+            Serial.println("test herere");
 
-            if(ControllerSourceStorage::add(source))
+            if (ControllerSourceStorage::add(source))
             {
-             EspServer::server.send(200, "text/plain", "Control Source Added Successfully");
-
+                EspServer::server.send(200, "text/plain", "Control Source Added Successfully");
             }
-            else EspServer::server.send(200, "text/plain", "Control Source Added Failed!");
-
-
+            else
+                EspServer::server.send(200, "text/plain", "Control Source Added Failed!");
         }
         else
             EspServer::server.send(400, "text/plain", "Bad Request: Missing Parameters");
@@ -46,11 +51,44 @@ private:
         EspServer::server.sendContent("</table>");
     }
 
+static void deleteControlSource()
+{
+    if (EspServer::server.hasArg("id")) {
+
+        int id = EspServer::server.arg("id").toInt();
+        bool result = ControllerSourceStorage::remove(id);
+
+        if (result) {
+            EspServer::server.send(
+                200,
+                "application/json",
+                "{\"success\":true,\"message\":\"Control Source deleted successfully\"}"
+            );
+        }
+        else {
+            EspServer::server.send(
+                400,
+                "application/json",
+                "{\"success\":false,\"message\":\"Delete Control Source failed\"}"
+            );
+        }
+    }
+    else {
+        EspServer::server.send(
+            400,
+            "application/json",
+            "{\"success\":false,\"message\":\"Missing id parameter\"}"
+        );
+    }
+}
+
+
 public:
     static void begin()
     {
         EspServer::server.on("/ControlSources/add", HTTP_POST, add);
         EspServer::server.on("/ControlSources/showAdd", HTTP_GET, ControlSourcesPage::showAdd);
         EspServer::server.on("/showControlSources", HTTP_GET, ControlSourcesPage::show);
+        EspServer::server.on("/ControlSources/delete",HTTP_DELETE,deleteControlSource);
     }
 };
