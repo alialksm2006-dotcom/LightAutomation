@@ -3,9 +3,10 @@
 class ControllerSource
 {
 private:
-    int id;
-    int pinNumber;
-    int controllerId;
+    int id = 0;
+    int pinNumber = 0;
+    int controllerId = -1;
+    int buttonType = -1;
 
 public:
     int getId() const
@@ -35,6 +36,16 @@ public:
     void setControllerId(int controllerId)
     {
         this->controllerId = controllerId;
+    }
+
+    int getButtonType() const
+    {
+        return buttonType;
+    }
+
+    void setButtonType(int buttonType)
+    {
+        this->buttonType = buttonType;
     }
     
 };

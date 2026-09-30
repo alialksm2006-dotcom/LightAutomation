@@ -9,7 +9,7 @@ private:
 
 public:
     EspNowProtocol(int id, std::string name, int mac[6], int channel)
-        : Protocol(id, name), channel(channel)
+        : Protocol(id, name, Protocol::Kind::WIRELESS), channel(channel)
     {
         for (int i = 0; i < 6; i++)
         {

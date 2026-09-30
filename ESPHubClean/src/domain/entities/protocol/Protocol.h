@@ -4,13 +4,21 @@
 
 class Protocol
 {
+public:
+    enum class Kind
+    {
+        WIRED = 0,
+        WIRELESS = 1
+    };
+
 private:
     int id;
     std::string name;
+    Kind kind;
 
 public:
-    Protocol(int id, std::string name)
-        : id(id), name(name)
+    Protocol(int id, std::string name, Kind kind = Kind::WIRED)
+        : id(id), name(name), kind(kind)
     {
     }
 
@@ -32,5 +40,15 @@ public:
     void setName(std::string name)
     {
         this->name = name;
+    }
+
+    Kind getKind() const
+    {
+        return kind;
+    }
+
+    void setKind(Kind kind)
+    {
+        this->kind = kind;
     }
 };

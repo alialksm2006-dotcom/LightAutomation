@@ -1,13 +1,12 @@
 #pragma once
 
 #include <ArduinoJson.h>
-#include "LightsPage.h"
 #include "adapters/web/style/MainStyle.h"
 #include "adapters/web/html/SideBarhtml.h"
 #include "adapters/web/script/MainScript.h"
 #include "adapters/web/script/HandleAddButtonScript.h"
-#include "ControlSourcesPage.h"
-#include "adapters/web/script/ControlSourcesScript.h"
+#include "EntitiesPage.h"
+#include "adapters/web/script/EntitiesScript.h"
 
 class MainPage
 {
@@ -50,12 +49,11 @@ public:
     EspServer::server.sendContent("  <div id=\"content\">");
     EspServer::server.sendContent("  </div>");
     EspServer::server.sendContent("</div>");
-    // LightsPage::sendAddLightModal();
-    ControlSourcesPage::begin();
+    EntitiesPage::sendModal();
     SideBarhtml::sendHtml();
     EspServer::server.sendContent("<script>");
     MainScript::sendMainScript();
-    ControlSourcesScript::send();
+    EntitiesScript::send();
     HandleAddButtonScript::send();
     EspServer::server.sendContent("</script>");
     EspServer::server.sendContent("</body>");

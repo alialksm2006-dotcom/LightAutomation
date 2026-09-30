@@ -1,7 +1,7 @@
 #pragma once 
 #include "ShowPagesApi.h"
-#include "ControlSourcesApi.h"
-#include "LightsApi.h"
+#include "EntitiesApi.h"
+#include "adapters/espnow/WirelessDiscovery.h"
 #include <ESPmDNS.h>
 class MainApi
 {
@@ -17,9 +17,10 @@ public:
         Serial.println(WiFi.localIP());
 
         MDNS.begin("smart");
+        if (!WirelessDiscovery::begin())
+            Serial.println("Failed to initialize ESP-NOW wireless discovery");
         ShowPagesApi::begin();
-        ControlSourceApi::begin();
-        LightsApi::begin();
+        EntitiesApi::begin();
         EspServer::server.begin();
 
 }

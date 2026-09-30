@@ -193,6 +193,17 @@ bool espNowSend(const uint8_t mac[6],
 #endif
 }
 
+bool espNowBroadcastWirelessDiscovery()
+{
+  static const uint8_t broadcastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  static const char discoveryMessage[] = "WIRELESS_DISCOVERY_V1";
+  if (!espNowAddPeer(broadcastMac))
+  {
+    return false;
+  }
+  return espNowSend(broadcastMac, discoveryMessage, sizeof(discoveryMessage) - 1);
+}
+
 void espNowOnReceive(EspNowRecvCallback cb)
 {
   g_recvCb = cb;

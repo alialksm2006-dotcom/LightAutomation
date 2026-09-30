@@ -5,18 +5,17 @@ class HandleAddButtonScript
 static void send()
 {
 EspServer::server.sendContent(R"rawliteral(
-    function handleAdd()
-    {
-    if (selectedItem=="Control Sources")
-      {
-       const dialog = document.getElementById('addControlSourceModal');
-       dialog.showModal();
-       return ;
-      }
+function handleAdd() {
+    if (selectedItem === "Wireless") {
+        startWirelessDiscovery();
+        return;
     }
-
-    document.getElementById('addControlSourceModal').addEventListener('close', function() {
-    document.getElementById('controlSourceForm').reset();});
+    if (!entityRoutes[selectedItem]) {
+        showToast("Select an item first", true);
+        return;
+    }
+    openEntityModal();
+}
     )rawliteral");
 
     

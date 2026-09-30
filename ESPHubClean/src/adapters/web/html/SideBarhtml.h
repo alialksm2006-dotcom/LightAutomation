@@ -9,16 +9,21 @@ static void sendHtml()
     <div class="sidebar">
       <h2>Smart Home</h2>
       <ul>
-        <li onclick="showItem('/devices/show')">Devices</li>
-        <li onclick="showRooms()">Rooms</li>
+        <li onclick="showItem('/showDevices')">Devices</li>
+        <li onclick="showItem('/showRooms')">Rooms</li>
         <li>
         <span onclick="showItem('/showControlSources')">Control Sources</span>
           <ul>
-           <li>Buttons</li>
+           <li onclick="showItem('/showButtons')">Buttons</li>
           </ul>
           </li>
-        <li onclick="showControllers()">Controllers</li>
-        <li onclick="showProtocols()">Protocols</li>
+        <li onclick="showItem('/showControllers')">Controllers</li>
+        <li>
+          <span onclick="showItem('/showProtocols')">Protocols</span>
+          <ul>
+            <li onclick="showItem('/showWireless')">Wireless</li>
+          </ul>
+        </li>
       </ul>
     </div>
 

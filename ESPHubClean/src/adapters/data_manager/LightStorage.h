@@ -5,15 +5,53 @@ class LightStorage
 {   
 private:
 static std::vector<Light> lights;
+static int nextId;
 public:
     static const std::vector<Light> &getLights()
     {
         return lights;
     }
-static bool addLight(const Light &light)
+static int addLight(const Light &light)
     {
-        lights.push_back(light);
-        return true;
+        Light storedLight = light;
+        storedLight.id = ++nextId;
+        lights.push_back(storedLight);
+        return storedLight.id;
+    }
+
+    static bool updateLight(const Light &light)
+    {
+        for (Light &storedLight : lights)
+        {
+            if (storedLight.id == light.id)
+            {
+                storedLight = light;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool removeLight(int id)
+    {
+        for (std::vector<Light>::iterator it = lights.begin(); it != lights.end(); ++it)
+        {
+            if (it->id == id)
+            {
+                lights.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void updateRoomName(int roomId, const std::string &name)
+    {
+        for (Light &light : lights)
+        {
+            if (light.roomId == roomId)
+                light.room = name;
+        }
     }
 
 };

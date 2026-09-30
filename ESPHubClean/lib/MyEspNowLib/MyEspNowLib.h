@@ -37,6 +37,7 @@ typedef void (*EspNowSendCallback)(const uint8_t *mac,
 
 // إضافة peer بعنوان MAC
 bool espNowAddPeer(const uint8_t mac[6]);
+bool espNowBroadcastWirelessDiscovery();
 
 // إرسال بيانات (struct أو أي بيانات خام)
  bool espNowSend(const uint8_t mac[6],

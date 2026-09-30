@@ -38,6 +38,19 @@ public:
 
         return false;
     }
+
+    static bool update(const ControllerSource &updatedSource)
+    {
+        for (ControllerSource &source : sources)
+        {
+            if (source.getId() == updatedSource.getId())
+            {
+                source = updatedSource;
+                return true;
+            }
+        }
+        return false;
+    }
     static std::vector<ControllerSource> &getAll()
     {
         return sources;

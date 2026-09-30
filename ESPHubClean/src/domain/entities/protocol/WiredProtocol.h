@@ -4,7 +4,7 @@ class WiredProtocol : public Protocol
 {
 public:
   WiredProtocol(int id, std::string name)
-        : Protocol(id, name)
+        : Protocol(id, name, Protocol::Kind::WIRED)
     {
     }
 };
