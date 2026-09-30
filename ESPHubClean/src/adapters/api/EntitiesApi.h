@@ -179,51 +179,51 @@ private:
                 EspServer::server.send(400, "text/plain", "Invalid device fields");
                 return;
             }
-            if (type == "wireless")
+            EspServer::server.send(200, "text/plain", String(LightStorage::addLight(light)));
+            return;
+        }
+        if (type == "wireless")
+        {
+            int protocolId;
+            if (!EspServer::server.hasArg("mac"))
             {
-                int protocolId;
-                if (!EspServer::server.hasArg("mac"))
-                {
-                    EspServer::server.send(400, "text/plain", "Select a discovered MAC");
-                    return;
-                }
-                String macText = EspServer::server.arg("mac");
-                for (const DiscoveredWirelessPeer &peer : WirelessStorage::getDiscovered())
-                {
-                    if (formatMac(peer.mac) == macText)
-                    {
-                        if (EspServer::server.hasArg("protocolName"))
-                        {
-                            String protocolName = EspServer::server.arg("protocolName");
-                            protocolName.trim();
-                            if (protocolName.length() == 0)
-                            {
-                                EspServer::server.send(400, "text/plain", "Protocol name is required");
-                                return;
-                            }
-                            protocolId = ProtocolStorage::add(protocolName, Protocol::Kind::WIRELESS);
-                        }
-                        else if (!readInteger("protocolId", protocolId) ||
-                                 !ProtocolStorage::contains(protocolId) ||
-                                 ProtocolStorage::find(protocolId)->getKind() != Protocol::Kind::WIRELESS)
-                        {
-                            EspServer::server.send(400, "text/plain", "Select an existing wireless protocol");
-                            return;
-                        }
-                        int id = WirelessStorage::add(peer.mac, peer.channel, protocolId);
-                        if (id == 0)
-                        {
-                            EspServer::server.send(409, "text/plain", "Wireless MAC is already registered");
-                            return;
-                        }
-                        EspServer::server.send(200, "text/plain", String(id));
-                        return;
-                    }
-                }
-                EspServer::server.send(400, "text/plain", "MAC is no longer in the discovery list; scan again");
+                EspServer::server.send(400, "text/plain", "Select a discovered MAC");
                 return;
             }
-            EspServer::server.send(200, "text/plain", String(LightStorage::addLight(light)));
+            String macText = EspServer::server.arg("mac");
+            for (const DiscoveredWirelessPeer &peer : WirelessStorage::getDiscovered())
+            {
+                if (formatMac(peer.mac) == macText)
+                {
+                    if (EspServer::server.hasArg("protocolName"))
+                    {
+                        String protocolName = EspServer::server.arg("protocolName");
+                        protocolName.trim();
+                        if (protocolName.length() == 0)
+                        {
+                            EspServer::server.send(400, "text/plain", "Protocol name is required");
+                            return;
+                        }
+                        protocolId = ProtocolStorage::add(protocolName, Protocol::Kind::WIRELESS);
+                    }
+                    else if (!readInteger("protocolId", protocolId) ||
+                             !ProtocolStorage::contains(protocolId) ||
+                             ProtocolStorage::find(protocolId)->getKind() != Protocol::Kind::WIRELESS)
+                    {
+                        EspServer::server.send(400, "text/plain", "Select an existing wireless protocol");
+                        return;
+                    }
+                    int id = WirelessStorage::add(peer.mac, peer.channel, protocolId);
+                    if (id == 0)
+                    {
+                        EspServer::server.send(409, "text/plain", "Wireless MAC is already registered");
+                        return;
+                    }
+                    EspServer::server.send(200, "text/plain", String(id));
+                    return;
+                }
+            }
+            EspServer::server.send(400, "text/plain", "MAC is no longer in the discovery list; scan again");
             return;
         }
         EspServer::server.send(400, "text/plain", "Unknown entity type");
@@ -361,7 +361,7 @@ private:
         }
         if (type == "protocol" && ProtocolStorage::isUsed(id))
         {
-            EspServer::server.send(409, "text/plain", "Protocol is used by a device");
+            EspServer::server.send(409, "text/plain", "Protocol is used by a device or wireless record");
             return;
         }
 

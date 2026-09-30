@@ -205,7 +205,8 @@ public:
         beginResponse();
         EspServer::server.sendContent(
             "<h3>Wireless</h3><table><thead><tr><th>ID</th><th>MAC</th><th>Channel</th>"
-            "<th>Protocol ID</th><th>Details</th><th>Actions</th></tr></thead><tbody>");
+            "<th>Protocol ID</th><th>Actions</th><th>Protocol Details</th>"
+            "</tr></thead><tbody>");
         for (const WirelessDevice &device : WirelessStorage::getAll())
         {
             char mac[18];
@@ -222,10 +223,12 @@ public:
                 "</td><td>" + String(mac) +
                 "</td><td>" + String(device.channel) +
                 "</td><td>" + String(device.protocolId) +
-                "</td><td><button class='btn' title='Show protocol details' "
-                "onclick='showWirelessDetails(" + String(device.id) +
-                ")'>&#9432;</button></td>");
+                "</td>");
             sendActions("wireless", device.id, fields);
+            EspServer::server.sendContent(
+                "<td><button class='btn' title='Show protocol details' "
+                "aria-label='Show protocol details' onclick='showWirelessDetails(" +
+                String(device.id) + ")'>&#9432;</button></td>");
             EspServer::server.sendContent("</tr>");
         }
         EspServer::server.sendContent("</tbody></table>");
@@ -276,6 +279,11 @@ public:
     <div id="newProtocolControls" class="form-group mb-14" style="display:none">
       <label for="newProtocolName">Create new protocol</label>
       <input id="newProtocolName" type="text" placeholder="Protocol name" />
+      <label for="newProtocolKind">Protocol type</label>
+      <select id="newProtocolKind">
+        <option value="0">Wired</option>
+        <option value="1">Wireless</option>
+      </select>
       <button type="button" class="btn" onclick="createProtocolFromPicker()">Create and select</button>
     </div>
     <div class="modal-actions">

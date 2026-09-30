@@ -29,7 +29,7 @@ const entityDefinitions = {
     },
     "Wireless": {
         type: "wireless",
-        fields: [["protocolId", "Protocol", "relation", "protocol"]]
+        fields: [["protocolId", "Protocol", "relation", "wirelessProtocol"]]
     },
     "Control Sources": {
         type: "source",
@@ -65,7 +65,9 @@ async function createProtocolFromPicker() {
             await saveWirelessDevice("");
             return;
         }
-        const params = new URLSearchParams({ type: "protocol", name, kind: "1" });
+        const kind = wirelessFlow || activeRelationType === "wirelessProtocol"
+            ? "1" : document.getElementById("newProtocolKind").value;
+        const params = new URLSearchParams({ type: "protocol", name, kind });
         const response = await fetch("/api/entities/add", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -73,7 +75,10 @@ async function createProtocolFromPicker() {
         });
         const id = await response.text();
         if (!response.ok) throw new Error(id || "Could not create protocol");
-        const selection = { id, label: name + " (Wireless)" };
+        const selection = {
+            id,
+            label: name + (kind === "1" ? " (Wireless)" : " (Wired)")
+        };
         if (wirelessFlow) {
             saveWirelessDevice(id);
             return;
@@ -291,6 +296,7 @@ function openEntityModal(button) {
 }
 
 let activeRelationKey = "";
+let activeRelationType = "";
 let wirelessFlow = false;
 let selectedWirelessPeer = null;
 let selectedNewProtocolName = "";
@@ -298,20 +304,23 @@ let discoveryTimer = null;
 
 async function openRelationPicker(key, relationType) {
     activeRelationKey = key;
+    activeRelationType = relationType;
     document.getElementById("relationModalTitle").textContent =
         "Select " + key.replace(/([A-Z])/g, " $1").toLowerCase();
     document.getElementById("newRoomControls").style.display =
         relationType === "room" ? "block" : "none";
     document.getElementById("newProtocolControls").style.display =
-        relationType.indexOf("protocol") === 0 ? "block" : "none";
+        (relationType === "protocol" || relationType === "wirelessProtocol")
+            ? "block" : "none";
     document.getElementById("newRoomName").value = "";
     document.getElementById("newProtocolName").value = "";
+    const wirelessProtocolOnly = wirelessFlow || relationType === "wirelessProtocol";
+    document.getElementById("newProtocolKind").value = wirelessProtocolOnly ? "1" : "0";
+    document.getElementById("newProtocolKind").disabled = wirelessProtocolOnly;
     const options = document.getElementById("relationOptions");
     options.textContent = "Loading...";
     try {
-        const optionType = wirelessFlow && relationType === "protocol"
-            ? "wirelessProtocol" : relationType;
-        const response = await fetch("/api/entities/options?type=" + encodeURIComponent(optionType));
+        const response = await fetch("/api/entities/options?type=" + encodeURIComponent(relationType));
         if (!response.ok) throw new Error("Could not load related records");
         options.innerHTML = await response.text();
         document.getElementById("relationModal").showModal();
