@@ -187,32 +187,50 @@ private:
             int protocolId;
             if (!EspServer::server.hasArg("mac"))
             {
-                EspServer::server.send(400, "text/plain", "Select a discovered MAC");
+                EspServer::server.send(400, "text/plain", "MAC is required; use -1 to assign it later");
                 return;
             }
             String macText = EspServer::server.arg("mac");
+            bool createProtocol = EspServer::server.hasArg("protocolName");
+            String protocolName;
+            if (createProtocol)
+            {
+                protocolName = EspServer::server.arg("protocolName");
+                protocolName.trim();
+                if (protocolName.length() == 0)
+                {
+                    EspServer::server.send(400, "text/plain", "Protocol name is required");
+                    return;
+                }
+            }
+            else if (!readInteger("protocolId", protocolId) ||
+                     !ProtocolStorage::contains(protocolId) ||
+                     ProtocolStorage::find(protocolId)->getKind() != Protocol::Kind::WIRELESS)
+            {
+                EspServer::server.send(400, "text/plain", "Select an existing wireless protocol");
+                return;
+            }
+
+            if (macText == "-1")
+            {
+                if (createProtocol)
+                    protocolId = ProtocolStorage::add(protocolName, Protocol::Kind::WIRELESS);
+                int id = WirelessStorage::addUnassigned(protocolId);
+                if (id == 0)
+                {
+                    EspServer::server.send(500, "text/plain", "Could not add wireless record");
+                    return;
+                }
+                EspServer::server.send(200, "text/plain", String(id));
+                return;
+            }
+
             for (const DiscoveredWirelessPeer &peer : WirelessStorage::getDiscovered())
             {
                 if (formatMac(peer.mac) == macText)
                 {
-                    if (EspServer::server.hasArg("protocolName"))
-                    {
-                        String protocolName = EspServer::server.arg("protocolName");
-                        protocolName.trim();
-                        if (protocolName.length() == 0)
-                        {
-                            EspServer::server.send(400, "text/plain", "Protocol name is required");
-                            return;
-                        }
+                    if (createProtocol)
                         protocolId = ProtocolStorage::add(protocolName, Protocol::Kind::WIRELESS);
-                    }
-                    else if (!readInteger("protocolId", protocolId) ||
-                             !ProtocolStorage::contains(protocolId) ||
-                             ProtocolStorage::find(protocolId)->getKind() != Protocol::Kind::WIRELESS)
-                    {
-                        EspServer::server.send(400, "text/plain", "Select an existing wireless protocol");
-                        return;
-                    }
                     int id = WirelessStorage::add(peer.mac, peer.channel, protocolId);
                     if (id == 0)
                     {
@@ -489,6 +507,31 @@ private:
         EntitiesPage::sendWirelessDetails(id);
     }
 
+    static void assignWirelessMac()
+    {
+        int id;
+        if (!readInteger("id", id) || id < 1 || !EspServer::server.hasArg("mac"))
+        {
+            EspServer::server.send(400, "text/plain", "A valid device id and discovered MAC are required");
+            return;
+        }
+        String macText = EspServer::server.arg("mac");
+        for (const DiscoveredWirelessPeer &peer : WirelessStorage::getDiscovered())
+        {
+            if (formatMac(peer.mac) == macText)
+            {
+                if (!WirelessStorage::assignMac(id, peer.mac, peer.channel))
+                {
+                    EspServer::server.send(409, "text/plain", "MAC is already assigned or device was not found");
+                    return;
+                }
+                EspServer::server.send(200, "text/plain", "MAC assigned successfully");
+                return;
+            }
+        }
+        EspServer::server.send(400, "text/plain", "MAC is no longer in the discovery list; scan again");
+    }
+
 public:
     static void begin()
     {
@@ -507,6 +550,7 @@ public:
         EspServer::server.on("/api/entities/options", HTTP_GET, showOptions);
         EspServer::server.on("/api/wireless/discovery", HTTP_GET, getWirelessDiscovery);
         EspServer::server.on("/api/wireless/add", HTTP_POST, addWireless);
+        EspServer::server.on("/api/wireless/assign", HTTP_POST, assignWirelessMac);
         EspServer::server.on("/api/wireless/details", HTTP_GET, showWirelessDetails);
         EspServer::server.on("/api/wireless/update", HTTP_POST, updateEntity);
         EspServer::server.on("/api/wireless/delete", HTTP_POST, deleteEntity);

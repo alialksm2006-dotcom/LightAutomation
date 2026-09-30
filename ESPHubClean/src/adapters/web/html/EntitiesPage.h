@@ -205,14 +205,17 @@ public:
         beginResponse();
         EspServer::server.sendContent(
             "<h3>Wireless</h3><table><thead><tr><th>ID</th><th>MAC</th><th>Channel</th>"
-            "<th>Protocol ID</th><th>Actions</th><th>Protocol Details</th>"
+            "<th>Protocol ID</th><th>Actions</th><th>MAC Discovery</th><th>Protocol Details</th>"
             "</tr></thead><tbody>");
         for (const WirelessDevice &device : WirelessStorage::getAll())
         {
             char mac[18];
-            snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
-                     device.mac[0], device.mac[1], device.mac[2],
-                     device.mac[3], device.mac[4], device.mac[5]);
+            if (device.hasMac)
+                snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
+                         device.mac[0], device.mac[1], device.mac[2],
+                         device.mac[3], device.mac[4], device.mac[5]);
+            else
+                snprintf(mac, sizeof(mac), "-1");
             const Protocol *protocol = ProtocolStorage::find(device.protocolId);
             String protocolNameValue = protocol
                 ? escapeHtml(String(protocol->getName().c_str()))
@@ -225,6 +228,16 @@ public:
                 "</td><td>" + String(device.protocolId) +
                 "</td>");
             sendActions("wireless", device.id, fields);
+            if (device.hasMac)
+            {
+                EspServer::server.sendContent("<td></td>");
+            }
+            else
+            {
+                EspServer::server.sendContent(
+                    "<td><button class='btn' onclick='startWirelessDiscovery(" +
+                    String(device.id) + ")'>Discover MAC</button></td>");
+            }
             EspServer::server.sendContent(
                 "<td><button class='btn' title='Show protocol details' "
                 "aria-label='Show protocol details' onclick='showWirelessDetails(" +
@@ -303,6 +316,8 @@ public:
       <p id="wirelessDiscoveryStatus">Listening for ESP-NOW broadcasts...</p>
     </div>
     <div id="wirelessDiscoveryResults"></div>
+    <button type="button" class="btn secondary" id="wirelessSkipMac"
+            onclick="continueWirelessWithoutMac()">Add without MAC (-1)</button>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="closeWirelessDiscovery()">Cancel</button>
       <button type="button" class="btn" onclick="continueWirelessSetup()">Next</button>
@@ -405,17 +420,22 @@ public:
             EspServer::server.send(404, "text/plain", "Assigned protocol not found");
             return;
         }
-        char mac[18];
-        snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
-                 device->mac[0], device->mac[1], device->mac[2],
-                 device->mac[3], device->mac[4], device->mac[5]);
         String kind = protocol->getKind() == Protocol::Kind::WIRELESS ? "Wireless" : "Wired";
+        String mac = "-1";
+        if (device->hasMac)
+        {
+            char formattedMac[18];
+            snprintf(formattedMac, sizeof(formattedMac), "%02X:%02X:%02X:%02X:%02X:%02X",
+                     device->mac[0], device->mac[1], device->mac[2],
+                     device->mac[3], device->mac[4], device->mac[5]);
+            mac = formattedMac;
+        }
         String html = "<table><tbody><tr><th>Protocol ID</th><td>" +
-            String(protocol->getId()) + "</td></tr><tr><th>Name</th><td>" +
-            escapeHtml(String(protocol->getName().c_str())) +
-            "</td></tr><tr><th>Type</th><td>" + kind +
-            "</td></tr><tr><th>Wireless Device ID</th><td>" + String(device->id) +
-            "</td></tr><tr><th>MAC</th><td>" + String(mac) +
+        String(protocol->getId()) + "</td></tr><tr><th>Name</th><td>" +
+        escapeHtml(String(protocol->getName().c_str())) +
+        "</td></tr><tr><th>Type</th><td>" + kind +
+        "</td></tr><tr><th>Wireless Device ID</th><td>" + String(device->id) +
+        "</td></tr><tr><th>MAC</th><td>" + mac +
             "</td></tr><tr><th>Channel</th><td>" + String(device->channel) +
             "</td></tr></tbody></table>";
         EspServer::server.send(200, "text/html", html);

@@ -16,7 +16,8 @@ struct WirelessDevice
 {
     int id;
     uint8_t mac[6];
-    uint8_t channel;
+    int channel;
+    bool hasMac;
     int protocolId;
 };
 
@@ -48,7 +49,9 @@ public:
     static void recordDiscovery(const uint8_t mac[6], uint8_t channel);
     static bool removeDiscovery(const uint8_t mac[6]);
     static int add(const uint8_t mac[6], uint8_t channel, int protocolId);
+    static int addUnassigned(int protocolId);
     static bool update(int id, int protocolId);
+    static bool assignMac(int id, const uint8_t mac[6], uint8_t channel);
     static bool remove(int id);
     static const WirelessDevice *find(int id);
 };

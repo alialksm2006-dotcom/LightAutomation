@@ -91,10 +91,37 @@ async function createProtocolFromPicker() {
     }
 }
 
-function startWirelessDiscovery() {
+async function assignDiscoveredMac() {
+    if (wirelessAssignmentId === null || !selectedWirelessPeer) return;
+    try {
+        const params = new URLSearchParams({
+            id: String(wirelessAssignmentId),
+            mac: selectedWirelessPeer.mac
+        });
+        const response = await fetch("/api/wireless/assign", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params
+        });
+        const result = await response.text();
+        if (!response.ok) throw new Error(result || "Could not assign MAC");
+        wirelessAssignmentId = null;
+        selectedWirelessPeer = null;
+        showToast(result);
+        await showItem(entityRoutes.Wireless);
+    } catch (error) {
+        showToast(error.message, true);
+        console.error(error);
+    }
+}
+
+function startWirelessDiscovery(deviceId = null) {
     selectedWirelessPeer = null;
     selectedNewProtocolName = "";
     wirelessFlow = false;
+    wirelessAssignmentId = deviceId;
+    document.getElementById("wirelessSkipMac").style.display =
+        deviceId === null ? "inline-block" : "none";
     document.getElementById("wirelessDiscoveryResults").textContent = "No devices discovered yet.";
     document.getElementById("wirelessDiscoveryStatus").textContent =
         "Listening for ESP-NOW discovery broadcasts...";
@@ -167,18 +194,26 @@ function continueWirelessSetup() {
         channel: Number(selected.closest("tr").lastElementChild.textContent)
     };
     closeWirelessDiscovery();
+    if (wirelessAssignmentId !== null) {
+        assignDiscoveredMac();
+        return;
+    }
+    wirelessFlow = true;
+    openRelationPicker("protocolId", "wirelessProtocol");
+}
+
+function continueWirelessWithoutMac() {
+    if (wirelessAssignmentId !== null) return;
+    selectedWirelessPeer = null;
+    closeWirelessDiscovery();
     wirelessFlow = true;
     openRelationPicker("protocolId", "wirelessProtocol");
 }
 
 async function saveWirelessDevice(protocolId) {
-    if (!selectedWirelessPeer) {
-        showToast("No discovered wireless device selected", true);
-        return;
-    }
     try {
         const params = new URLSearchParams({
-            mac: selectedWirelessPeer.mac
+            mac: selectedWirelessPeer ? selectedWirelessPeer.mac : "-1"
         });
         if (selectedNewProtocolName)
             params.set("protocolName", selectedNewProtocolName);
@@ -195,6 +230,7 @@ async function saveWirelessDevice(protocolId) {
         wirelessFlow = false;
         selectedWirelessPeer = null;
         selectedNewProtocolName = "";
+        wirelessAssignmentId = null;
         showToast("Wireless device added");
         await showItem(entityRoutes.Wireless);
     } catch (error) {
@@ -300,6 +336,7 @@ let activeRelationType = "";
 let wirelessFlow = false;
 let selectedWirelessPeer = null;
 let selectedNewProtocolName = "";
+let wirelessAssignmentId = null;
 let discoveryTimer = null;
 
 async function openRelationPicker(key, relationType) {

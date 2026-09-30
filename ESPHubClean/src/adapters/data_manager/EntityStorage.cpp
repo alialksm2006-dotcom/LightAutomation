@@ -264,7 +264,7 @@ void WirelessStorage::recordDiscovery(const uint8_t mac[6], uint8_t channel)
 {
     for (const WirelessDevice &device : devices)
     {
-        if (memcmp(device.mac, mac, 6) == 0)
+        if (device.hasMac && memcmp(device.mac, mac, 6) == 0)
             return;
     }
     for (const DiscoveredWirelessPeer &peer : discovered)
@@ -303,7 +303,7 @@ int WirelessStorage::add(const uint8_t mac[6], uint8_t channel, int protocolId)
         return 0;
     for (const WirelessDevice &device : devices)
     {
-        if (memcmp(device.mac, mac, 6) == 0)
+        if (device.hasMac && memcmp(device.mac, mac, 6) == 0)
             return 0;
     }
 
@@ -311,9 +311,25 @@ int WirelessStorage::add(const uint8_t mac[6], uint8_t channel, int protocolId)
     device.id = ++nextId;
     memcpy(device.mac, mac, 6);
     device.channel = channel;
+    device.hasMac = true;
     device.protocolId = protocolId;
     devices.push_back(device);
     removeDiscovery(mac);
+    return device.id;
+}
+
+int WirelessStorage::addUnassigned(int protocolId)
+{
+    if (!ProtocolStorage::contains(protocolId) ||
+        ProtocolStorage::find(protocolId)->getKind() != Protocol::Kind::WIRELESS)
+        return 0;
+
+    WirelessDevice device = {};
+    device.id = ++nextId;
+    device.channel = -1;
+    device.hasMac = false;
+    device.protocolId = protocolId;
+    devices.push_back(device);
     return device.id;
 }
 
@@ -328,6 +344,28 @@ bool WirelessStorage::update(int id, int protocolId)
         if (device.id == id)
         {
             device.protocolId = protocolId;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool WirelessStorage::assignMac(int id, const uint8_t mac[6], uint8_t channel)
+{
+    for (const WirelessDevice &existing : devices)
+    {
+        if (existing.id != id && existing.hasMac && memcmp(existing.mac, mac, 6) == 0)
+            return false;
+    }
+
+    for (WirelessDevice &device : devices)
+    {
+        if (device.id == id)
+        {
+            memcpy(device.mac, mac, 6);
+            device.channel = channel;
+            device.hasMac = true;
+            removeDiscovery(mac);
             return true;
         }
     }
