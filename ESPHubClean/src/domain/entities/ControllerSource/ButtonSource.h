@@ -11,9 +11,21 @@ public:
     };
 
 private:
-    Type type;
+    int id = 0;
+    Type type = Type::PUSH;
+    int controllerSourceId = 0;
 
 public:
+    int getId() const
+    {
+        return id;
+    }
+
+    void setId(int id)
+    {
+        this->id = id;
+    }
+
     Type getType() const
     {
         return type;
@@ -22,6 +34,16 @@ public:
     void setType(Type type)
     {
         this->type = type;
+    }
+
+    int getControllerSourceId() const
+    {
+        return controllerSourceId;
+    }
+
+    void setControllerSourceId(int controllerSourceId)
+    {
+        this->controllerSourceId = controllerSourceId;
     }
     std::string getDetails() const 
     {

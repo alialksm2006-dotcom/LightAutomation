@@ -34,6 +34,7 @@ public:
     static bool remove(int id);
     static bool contains(int id);
     static bool isUsed(int id);
+    static void restoreAll(const std::vector<Room> &records);
 };
 
 class WirelessStorage
@@ -54,6 +55,7 @@ public:
     static bool assignMac(int id, const uint8_t mac[6], uint8_t channel);
     static bool remove(int id);
     static const WirelessDevice *find(int id);
+    static void restoreAll(const std::vector<WirelessDevice> &records);
 };
 
 class ControllerStorage
@@ -69,6 +71,7 @@ public:
     static bool remove(int id);
     static bool contains(int id);
     static bool isUsed(int id);
+    static void restoreAll(const std::vector<Controller> &records);
 };
 
 class ProtocolStorage
@@ -88,4 +91,5 @@ public:
     static bool isUsed(int id);
     static bool isWirelessUsed(int id);
     static const Protocol *find(int id);
+    static void restoreAll(const std::vector<Protocol> &records);
 };

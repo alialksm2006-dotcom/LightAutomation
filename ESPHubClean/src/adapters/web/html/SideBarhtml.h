@@ -9,19 +9,19 @@ static void sendHtml()
     <div class="sidebar">
       <h2>Smart Home</h2>
       <ul>
-        <li onclick="showItem('/showDevices')">Devices</li>
-        <li onclick="showItem('/showRooms')">Rooms</li>
+        <li class="nav-item" data-nav-route="/showDevices" onclick="showItem('/showDevices')">Devices</li>
+        <li class="nav-item" data-nav-route="/showRooms" onclick="showItem('/showRooms')">Rooms</li>
         <li>
-        <span onclick="showItem('/showControlSources')">Control Sources</span>
+        <span class="nav-item" data-nav-route="/showControlSources" onclick="showItem('/showControlSources')">Control Sources</span>
           <ul>
-           <li onclick="showItem('/showButtons')">Buttons</li>
+           <li class="nav-item" data-nav-route="/showButtons" onclick="showItem('/showButtons')">Buttons</li>
           </ul>
           </li>
-        <li onclick="showItem('/showControllers')">Controllers</li>
+        <li class="nav-item" data-nav-route="/showControllers" onclick="showItem('/showControllers')">Controllers</li>
         <li>
-          <span onclick="showItem('/showProtocols')">Protocols</span>
+          <span class="nav-item" data-nav-route="/showProtocols" onclick="showItem('/showProtocols')">Protocols</span>
           <ul>
-            <li onclick="showItem('/showWireless')">Wireless</li>
+            <li class="nav-item" data-nav-route="/showWireless" onclick="showItem('/showWireless')">Wireless</li>
           </ul>
         </li>
       </ul>

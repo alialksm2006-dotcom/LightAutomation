@@ -38,9 +38,8 @@ const entityDefinitions = {
     "Buttons": {
         type: "button",
         fields: [
-            ["pinNumber", "Pin Number", "number", "0"],
-            ["controllerId", "Controller", "relation", "controllerSource"],
-            ["buttonType", "Button Type", "select", "0", [["0", "PUSH"], ["1", "SWITCH"]]]
+            ["buttonType", "Type", "select", "0", [["0", "PUSH"], ["1", "SWITCH"]]],
+            ["controllerSourceId", "Control Source", "relation", "source"]
         ]
     }
 };
@@ -85,6 +84,44 @@ async function createProtocolFromPicker() {
         }
         applyRelationSelection(selection);
         showToast("Protocol created and selected");
+    } catch (error) {
+        showToast(error.message, true);
+        console.error(error);
+    }
+}
+
+async function createControlSourceFromPicker() {
+    const pinNumber = document.getElementById("newSourcePinNumber").value;
+    const controllerId = document.getElementById("newSourceControllerId").value;
+    if (pinNumber === "" || Number(pinNumber) < 0) {
+        showToast("Enter a valid pin number", true);
+        return;
+    }
+    try {
+        const params = new URLSearchParams({ type: "source", pinNumber, controllerId });
+        const response = await fetch("/api/entities/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params
+        });
+        const id = await response.text();
+        if (!response.ok) throw new Error(id || "Could not create control source");
+        applyRelationSelection({ id, label: "Control Source " + id + " (Pin " + pinNumber + ")" });
+        showToast("Control source created and selected");
+    } catch (error) {
+        showToast(error.message, true);
+        console.error(error);
+    }
+}
+
+async function showControlSourceDetails(id) {
+    try {
+        const response = await fetch("/api/control-sources/details?id=" + encodeURIComponent(id));
+        const content = await response.text();
+        if (!response.ok) throw new Error(content || "Could not load control source details");
+        document.getElementById("wirelessDetailsTitle").textContent = "Control source details";
+        document.getElementById("wirelessDetailsContent").innerHTML = content;
+        document.getElementById("wirelessDetailsModal").showModal();
     } catch (error) {
         showToast(error.message, true);
         console.error(error);
@@ -244,6 +281,21 @@ async function showWirelessDetails(id) {
         const response = await fetch("/api/wireless/details?id=" + encodeURIComponent(id));
         const content = await response.text();
         if (!response.ok) throw new Error(content || "Could not load protocol details");
+        document.getElementById("wirelessDetailsTitle").textContent = "Protocol details";
+        document.getElementById("wirelessDetailsContent").innerHTML = content;
+        document.getElementById("wirelessDetailsModal").showModal();
+    } catch (error) {
+        showToast(error.message, true);
+        console.error(error);
+    }
+}
+
+async function showRoomDeviceDetails(id) {
+    try {
+        const response = await fetch("/api/devices/details?id=" + encodeURIComponent(id));
+        const content = await response.text();
+        if (!response.ok) throw new Error(content || "Could not load device details");
+        document.getElementById("wirelessDetailsTitle").textContent = "Device details";
         document.getElementById("wirelessDetailsContent").innerHTML = content;
         document.getElementById("wirelessDetailsModal").showModal();
     } catch (error) {
@@ -349,19 +401,28 @@ async function openRelationPicker(key, relationType) {
     document.getElementById("newProtocolControls").style.display =
         (relationType === "protocol" || relationType === "wirelessProtocol")
             ? "block" : "none";
+    document.getElementById("newControlSourceControls").style.display =
+        relationType === "source" ? "block" : "none";
     document.getElementById("newRoomName").value = "";
     document.getElementById("newProtocolName").value = "";
+    document.getElementById("newSourcePinNumber").value = "";
     const wirelessProtocolOnly = wirelessFlow || relationType === "wirelessProtocol";
     document.getElementById("newProtocolKind").value = wirelessProtocolOnly ? "1" : "0";
     document.getElementById("newProtocolKind").disabled = wirelessProtocolOnly;
     const options = document.getElementById("relationOptions");
     options.textContent = "Loading...";
     try {
+        if (relationType === "source") {
+            const response = await fetch("/api/entities/controller-options");
+            if (!response.ok) throw new Error("Could not load controllers");
+            document.getElementById("newSourceControllerId").innerHTML = await response.text();
+        }
         const response = await fetch("/api/entities/options?type=" + encodeURIComponent(relationType));
         if (!response.ok) throw new Error("Could not load related records");
         options.innerHTML = await response.text();
         document.getElementById("relationModal").showModal();
-        const currentValue = document.getElementById("entity-" + key).value;
+        const relationInput = document.getElementById("entity-" + key);
+        const currentValue = relationInput ? relationInput.value : "";
         if (currentValue) {
             const currentChoice = Array.from(options.querySelectorAll("input[name='relationChoice']"))
                 .find(choice => choice.value === currentValue);
@@ -459,8 +520,61 @@ document.getElementById("entityForm").addEventListener("submit", async function(
     }
 });
 
+let deleteConfirmationResolver = null;
+
+function confirmEntityDelete(entityType, entityId) {
+    const modal = document.getElementById("deleteConfirmModal");
+    const typeLabels = {
+        room: "room",
+        device: "device",
+        controller: "controller",
+        protocol: "protocol",
+        wireless: "wireless device",
+        source: "control source",
+        button: "button"
+    };
+    const label = typeLabels[entityType] || "item";
+    document.getElementById("deleteConfirmTitle").textContent =
+        "Delete this " + label + "?";
+    document.getElementById("deleteConfirmMessage").textContent =
+        "The " + label + " #" + entityId +
+        " will be permanently removed. This action cannot be undone.";
+
+    return new Promise(resolve => {
+        deleteConfirmationResolver = resolve;
+        modal.showModal();
+    });
+}
+
+function finishDeleteConfirmation(confirmed) {
+    const modal = document.getElementById("deleteConfirmModal");
+    if (modal.open) modal.close();
+    const resolve = deleteConfirmationResolver;
+    deleteConfirmationResolver = null;
+    if (resolve) resolve(confirmed);
+}
+
+document.getElementById("cancelDeleteButton").addEventListener("click", () => {
+    finishDeleteConfirmation(false);
+});
+
+document.getElementById("confirmDeleteButton").addEventListener("click", () => {
+    finishDeleteConfirmation(true);
+});
+
+document.getElementById("deleteConfirmModal").addEventListener("cancel", event => {
+    event.preventDefault();
+    finishDeleteConfirmation(false);
+});
+
+document.getElementById("deleteConfirmModal").addEventListener("click", event => {
+    if (event.target === event.currentTarget)
+        finishDeleteConfirmation(false);
+});
+
 async function deleteEntity(button) {
-    if (!confirm("Delete this item?")) return;
+    const confirmed = await confirmEntityDelete(button.dataset.type, button.dataset.id);
+    if (!confirmed) return;
     const params = new URLSearchParams({ type: button.dataset.type, id: button.dataset.id });
     try {
         const response = await fetch("/api/entities/delete", {

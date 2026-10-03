@@ -7,10 +7,27 @@
 #include "adapters/data_manager/LightStorage.h"
 #include "adapters/espnow/WirelessDiscovery.h"
 #include "adapters/web/html/EntitiesPage.h"
+#include "infrastructure/repository/EntitiesRepository.h"
+#include "WebAuth.h"
+#include <functional>
 
 class EntitiesApi
 {
 private:
+    template <typename Handler>
+    static std::function<void(void)> requireLogin(Handler handler)
+    {
+        return [handler]()
+        {
+            if (!WebAuth::isAuthenticated())
+            {
+                WebAuth::rejectRequest();
+                return;
+            }
+            handler();
+        };
+    }
+
     static bool readInteger(const String &name, int &value)
     {
         if (!EspServer::server.hasArg(name) || EspServer::server.arg(name).length() == 0)
@@ -157,6 +174,30 @@ private:
         }
         if (type == "source" || type == "button")
         {
+            if (type == "button")
+            {
+                int buttonType;
+                int sourceId;
+                if (!readInteger("buttonType", buttonType) ||
+                    buttonType < 0 || buttonType > 1 ||
+                    !readInteger("controllerSourceId", sourceId) ||
+                    !ControllerSourceStorage::isControlSource(sourceId))
+                {
+                    EspServer::server.send(400, "text/plain", "Select a valid control source and button type");
+                    return;
+                }
+                ButtonSource button;
+                button.setType(static_cast<ButtonSource::Type>(buttonType));
+                button.setControllerSourceId(sourceId);
+                int id = ControllerSourceStorage::addButton(button);
+                if (id == 0)
+                {
+                    EspServer::server.send(500, "text/plain", "Could not add button");
+                    return;
+                }
+                EspServer::server.send(200, "text/plain", String(id));
+                return;
+            }
             ControllerSource source;
             if (!readSource(type, source))
             {
@@ -295,7 +336,25 @@ private:
             }
             updated = ControllerStorage::update(id, roomId);
         }
-        else if (type == "source" || type == "button")
+        else if (type == "button")
+        {
+            int buttonType;
+            int sourceId;
+            if (!readInteger("buttonType", buttonType) ||
+                buttonType < 0 || buttonType > 1 ||
+                !readInteger("controllerSourceId", sourceId) ||
+                !ControllerSourceStorage::isControlSource(sourceId))
+            {
+                EspServer::server.send(400, "text/plain", "Select a valid control source and button type");
+                return;
+            }
+            ButtonSource button;
+            button.setId(id);
+            button.setType(static_cast<ButtonSource::Type>(buttonType));
+            button.setControllerSourceId(sourceId);
+            updated = ControllerSourceStorage::updateButton(button);
+        }
+        else if (type == "source")
         {
             ControllerSource source;
             if (!readSource(type, source))
@@ -306,7 +365,7 @@ private:
             source.setId(id);
             for (const ControllerSource &existing : ControllerSourceStorage::getAll())
             {
-                if (existing.getId() == id && (existing.getButtonType() >= 0) == (type == "button"))
+                if (existing.getId() == id && existing.getButtonType() < 0)
                 {
                     updated = ControllerSourceStorage::update(source);
                     break;
@@ -394,16 +453,21 @@ private:
             removed = LightStorage::removeLight(id);
         else if (type == "wireless")
             removed = WirelessStorage::remove(id);
-        else if (type == "source" || type == "button")
+        else if (type == "button")
         {
-            if (LightControllerSourceStorage::isControlSourceAssociatedWithLight(id))
+            removed = ControllerSourceStorage::removeButton(id);
+        }
+        else if (type == "source")
+        {
+            if (LightControllerSourceStorage::isControlSourceAssociatedWithLight(id) ||
+                ControllerSourceStorage::isControlSourceUsed(id))
             {
-                EspServer::server.send(409, "text/plain", "Control source is assigned to a device");
+                EspServer::server.send(409, "text/plain", "Control source is assigned to a device or button");
                 return;
             }
             for (const ControllerSource &source : ControllerSourceStorage::getAll())
             {
-                if (source.getId() == id && (source.getButtonType() >= 0) == (type == "button"))
+                if (source.getId() == id && source.getButtonType() < 0)
                 {
                     removed = ControllerSourceStorage::remove(id);
                     break;
@@ -507,6 +571,63 @@ private:
         EntitiesPage::sendWirelessDetails(id);
     }
 
+    static void showControlSourceDetails()
+    {
+        int id;
+        if (!readInteger("id", id))
+        {
+            EspServer::server.send(400, "text/plain", "A valid id is required");
+            return;
+        }
+        EntitiesPage::sendControlSourceDetails(id);
+    }
+
+    static void showDeviceDetails()
+    {
+        int id;
+        if (!readInteger("id", id) || id < 1)
+        {
+            EspServer::server.send(400, "text/plain", "A valid id is required");
+            return;
+        }
+        EntitiesPage::sendDeviceDetails(id);
+    }
+
+    static void showControllerOptions()
+    {
+        EntitiesPage::showControllerOptions();
+    }
+
+    static void saveData()
+    {
+        String scope = EspServer::server.arg("scope");
+        if (!EspServer::server.hasArg("scope") || scope.isEmpty())
+        {
+            EspServer::server.send(400, "text/plain", "A save scope is required");
+            return;
+        }
+        if (scope != "all" && scope != "Rooms" && scope != "Devices" &&
+            scope != "Controllers" && scope != "Protocols" &&
+            scope != "Wireless" && scope != "Control Sources" &&
+            scope != "Buttons")
+        {
+            EspServer::server.send(400, "text/plain", "Unknown data category");
+            return;
+        }
+        String error;
+        bool saved = scope == "all"
+            ? EntitiesRepository::saveAll(error)
+            : EntitiesRepository::saveCategory(scope, error);
+        if (!saved)
+        {
+            EspServer::server.send(500, "text/plain", error);
+            return;
+        }
+        EspServer::server.send(200, "text/plain",
+                               scope == "all" ? "All application data saved to ESP"
+                                              : scope + " data saved to ESP");
+    }
+
     static void assignWirelessMac()
     {
         int id;
@@ -535,29 +656,34 @@ private:
 public:
     static void begin()
     {
-        EspServer::server.on("/devices/show", HTTP_GET, EntitiesPage::showDevices);
-        EspServer::server.on("/showDevices", HTTP_GET, EntitiesPage::showDevices);
-        EspServer::server.on("/showRooms", HTTP_GET, EntitiesPage::showRooms);
-        EspServer::server.on("/showControllers", HTTP_GET, EntitiesPage::showControllers);
-        EspServer::server.on("/showProtocols", HTTP_GET, EntitiesPage::showProtocols);
-        EspServer::server.on("/showControlSources", HTTP_GET, EntitiesPage::showControlSources);
-        EspServer::server.on("/showButtons", HTTP_GET, EntitiesPage::showButtons);
-        EspServer::server.on("/showWireless", HTTP_GET, EntitiesPage::showWireless);
+        EspServer::server.on("/devices/show", HTTP_GET, requireLogin(EntitiesPage::showDevices));
+        EspServer::server.on("/showDevices", HTTP_GET, requireLogin(EntitiesPage::showDevices));
+        EspServer::server.on("/showRooms", HTTP_GET, requireLogin(EntitiesPage::showRooms));
+        EspServer::server.on("/showRoomDiagram", HTTP_GET, requireLogin(EntitiesPage::showRoomDiagram));
+        EspServer::server.on("/showControllers", HTTP_GET, requireLogin(EntitiesPage::showControllers));
+        EspServer::server.on("/showProtocols", HTTP_GET, requireLogin(EntitiesPage::showProtocols));
+        EspServer::server.on("/showControlSources", HTTP_GET, requireLogin(EntitiesPage::showControlSources));
+        EspServer::server.on("/showButtons", HTTP_GET, requireLogin(EntitiesPage::showButtons));
+        EspServer::server.on("/showWireless", HTTP_GET, requireLogin(EntitiesPage::showWireless));
 
-        EspServer::server.on("/api/entities/add", HTTP_POST, addEntity);
-        EspServer::server.on("/api/entities/update", HTTP_POST, updateEntity);
-        EspServer::server.on("/api/entities/delete", HTTP_POST, deleteEntity);
-        EspServer::server.on("/api/entities/options", HTTP_GET, showOptions);
-        EspServer::server.on("/api/wireless/discovery", HTTP_GET, getWirelessDiscovery);
-        EspServer::server.on("/api/wireless/add", HTTP_POST, addWireless);
-        EspServer::server.on("/api/wireless/assign", HTTP_POST, assignWirelessMac);
-        EspServer::server.on("/api/wireless/details", HTTP_GET, showWirelessDetails);
-        EspServer::server.on("/api/wireless/update", HTTP_POST, updateEntity);
-        EspServer::server.on("/api/wireless/delete", HTTP_POST, deleteEntity);
+        EspServer::server.on("/api/entities/add", HTTP_POST, requireLogin(addEntity));
+        EspServer::server.on("/api/entities/update", HTTP_POST, requireLogin(updateEntity));
+        EspServer::server.on("/api/entities/delete", HTTP_POST, requireLogin(deleteEntity));
+        EspServer::server.on("/api/entities/options", HTTP_GET, requireLogin(showOptions));
+        EspServer::server.on("/api/entities/controller-options", HTTP_GET, requireLogin(showControllerOptions));
+        EspServer::server.on("/api/storage/save", HTTP_POST, requireLogin(saveData));
+        EspServer::server.on("/api/wireless/discovery", HTTP_GET, requireLogin(getWirelessDiscovery));
+        EspServer::server.on("/api/wireless/add", HTTP_POST, requireLogin(addWireless));
+        EspServer::server.on("/api/wireless/assign", HTTP_POST, requireLogin(assignWirelessMac));
+        EspServer::server.on("/api/wireless/details", HTTP_GET, requireLogin(showWirelessDetails));
+        EspServer::server.on("/api/control-sources/details", HTTP_GET, requireLogin(showControlSourceDetails));
+        EspServer::server.on("/api/devices/details", HTTP_GET, requireLogin(showDeviceDetails));
+        EspServer::server.on("/api/wireless/update", HTTP_POST, requireLogin(updateEntity));
+        EspServer::server.on("/api/wireless/delete", HTTP_POST, requireLogin(deleteEntity));
 
-        EspServer::server.on("/ControlSources/add", HTTP_POST, addControlSource);
-        EspServer::server.on("/ControlSources/update", HTTP_POST, updateControlSource);
-        EspServer::server.on("/ControlSources/delete", HTTP_DELETE, deleteControlSource);
-        EspServer::server.on("/ControlSources/showAdd", HTTP_GET, showAddModal);
+        EspServer::server.on("/ControlSources/add", HTTP_POST, requireLogin(addControlSource));
+        EspServer::server.on("/ControlSources/update", HTTP_POST, requireLogin(updateControlSource));
+        EspServer::server.on("/ControlSources/delete", HTTP_DELETE, requireLogin(deleteControlSource));
+        EspServer::server.on("/ControlSources/showAdd", HTTP_GET, requireLogin(showAddModal));
     }
 };

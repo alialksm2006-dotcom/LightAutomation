@@ -11,6 +11,18 @@ public:
     {
         return lights;
     }
+
+    static void restoreAll(const std::vector<Light> &records)
+    {
+        lights = records;
+        nextId = 0;
+        for (const Light &light : lights)
+        {
+            if (light.id > nextId)
+                nextId = light.id;
+        }
+    }
+
 static int addLight(const Light &light)
     {
         Light storedLight = light;

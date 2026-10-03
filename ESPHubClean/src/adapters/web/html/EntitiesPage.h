@@ -75,17 +75,13 @@ private:
 
     static void showSources(bool buttonsOnly)
     {
-        const String title = buttonsOnly ? "Buttons" : "Control Sources";
-        const String type = buttonsOnly ? "button" : "source";
-        EspServer::server.sendContent("<h3>" + title + "</h3><table><thead><tr>"
+        EspServer::server.sendContent("<h3>Control Sources</h3><table><thead><tr>"
                                       "<th>ID</th><th>Pin Number</th><th>Controller ID</th>");
-        if (buttonsOnly)
-            EspServer::server.sendContent("<th>Button Type</th>");
         EspServer::server.sendContent("<th>Actions</th></tr></thead><tbody>");
 
         for (const ControllerSource &source : ControllerSourceStorage::getAll())
         {
-            if ((source.getButtonType() >= 0) != buttonsOnly)
+            if (source.getButtonType() >= 0)
                 continue;
             String controllerLabel = source.getControllerId() == -1
                 ? String("Main controller")
@@ -93,15 +89,10 @@ private:
             String fields = " data-pin-number='" + String(source.getPinNumber()) +
                             "' data-controller-id='" + String(source.getControllerId()) +
                             "' data-controller-id-label='" + controllerLabel + "'";
-            if (buttonsOnly)
-                fields += " data-button-type='" + String(source.getButtonType()) + "'";
             EspServer::server.sendContent("<tr><td>" + String(source.getId()) +
                                           "</td><td>" + String(source.getPinNumber()) +
                                           "</td><td>" + String(source.getControllerId()) + "</td>");
-            if (buttonsOnly)
-                EspServer::server.sendContent(String("<td>") +
-                    (source.getButtonType() == 0 ? "PUSH" : "SWITCH") + "</td>");
-            sendActions(type, source.getId(), fields);
+            sendActions("source", source.getId(), fields);
             EspServer::server.sendContent("</tr>");
         }
         EspServer::server.sendContent("</tbody></table>");
@@ -148,7 +139,11 @@ public:
     {
         beginResponse();
         EspServer::server.sendContent(
-            "<h3>Rooms</h3><table><thead><tr><th>ID</th><th>Name</th><th>Actions</th>"
+            "<div style='display:flex;justify-content:space-between;align-items:center;gap:12px'>"
+            "<h3>Rooms</h3><button class='btn' onclick=\"showItem('/showRoomDiagram')\">"
+            "Room diagram</button></div>");
+        EspServer::server.sendContent(
+            "<table><thead><tr><th>ID</th><th>Name</th><th>Actions</th>"
             "</tr></thead><tbody>");
         for (const Room &room : RoomStorage::getAll())
         {
@@ -159,6 +154,54 @@ public:
             EspServer::server.sendContent("</tr>");
         }
         EspServer::server.sendContent("</tbody></table>");
+    }
+
+    static void showRoomDiagram()
+    {
+        beginResponse();
+        EspServer::server.sendContent(
+            "<div style='display:flex;justify-content:space-between;align-items:center;gap:12px'>"
+            "<h3>Room diagram</h3><button class='btn' onclick=\"showItem('/showRooms')\">"
+            "Table view</button></div><div class='grid' style='margin-top:16px'>");
+
+        for (const Room &room : RoomStorage::getAll())
+        {
+            String name = escapeHtml(String(room.name.c_str()));
+            size_t lightCount = 0;
+            for (const Light &light : LightStorage::getLights())
+            {
+                if (light.roomId == room.id)
+                    ++lightCount;
+            }
+
+            EspServer::server.sendContent(
+                "<details class='card'><summary style='cursor:pointer;font-size:1.1rem;font-weight:600'>"
+                "Room " + String(room.id) + " — " + name + " <span class='switch-badge'>" +
+                String(lightCount) + (lightCount == 1 ? " light" : " lights") +
+                "</span></summary><ul style='list-style:none;padding:12px 0 0 16px'>");
+
+            if (lightCount == 0)
+            {
+                EspServer::server.sendContent(
+                    "<li style='padding:8px 0;opacity:.7'>No lights in this room</li>");
+            }
+            else
+            {
+                for (const Light &light : LightStorage::getLights())
+                {
+                    if (light.roomId != room.id)
+                        continue;
+                    String lightName = escapeHtml(String(light.name.c_str()));
+                    EspServer::server.sendContent(
+                        "<li style='padding:5px 0;border-left:2px solid #38bdf8;padding-left:12px'>"
+                        "<button class='btn' style='text-align:left' onclick='showRoomDeviceDetails(" +
+                        String(light.id) + ")'>&#128161; " + lightName + " — " +
+                        String(light.state ? "ON" : "OFF") + "</button></li>");
+                }
+            }
+            EspServer::server.sendContent("</ul></details>");
+        }
+        EspServer::server.sendContent("</div>");
     }
 
     static void showControllers()
@@ -256,7 +299,26 @@ public:
     static void showButtons()
     {
         beginResponse();
-        showSources(true);
+        EspServer::server.sendContent(
+            "<h3>Buttons</h3><table><thead><tr><th>ID</th><th>Type</th>"
+            "<th>Control Source ID</th><th>Actions</th><th>Control Source Details</th>"
+            "</tr></thead><tbody>");
+        for (const ButtonSource &button : ControllerSourceStorage::getButtons())
+        {
+            String fields = " data-button-type='" +
+                String(static_cast<int>(button.getType())) +
+                "' data-controller-source-id='" + String(button.getControllerSourceId()) + "'";
+            EspServer::server.sendContent("<tr><td>" + String(button.getId()) +
+                "</td><td>" + String(button.getDetails().c_str()) +
+                "</td><td>" + String(button.getControllerSourceId()) + "</td>");
+            sendActions("button", button.getId(), fields);
+            EspServer::server.sendContent(
+                "<td><button class='btn' title='Show control source details' "
+                "aria-label='Show control source details' "
+                "onclick='showControlSourceDetails(" +
+                String(button.getControllerSourceId()) + ")'>&#9432;</button></td></tr>");
+        }
+        EspServer::server.sendContent("</tbody></table>");
     }
 
     static void sendModal()
@@ -275,6 +337,18 @@ public:
         <button type="submit" class="btn">Save</button>
       </div>
     </form>
+  </div>
+</dialog>
+<dialog id="deleteConfirmModal" class="modal-dialog delete-confirm-modal"
+        aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmMessage">
+  <div class="modal-content delete-confirm-content">
+    <div class="delete-confirm-icon" aria-hidden="true">&#33;</div>
+    <h3 id="deleteConfirmTitle">Delete this item?</h3>
+    <p id="deleteConfirmMessage">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="cancelDeleteButton">Cancel</button>
+      <button type="button" class="delete-confirm-button" id="confirmDeleteButton">Delete</button>
+    </div>
   </div>
 </dialog>
 <dialog id="relationModal" class="modal-dialog">
@@ -298,6 +372,24 @@ public:
         <option value="1">Wireless</option>
       </select>
       <button type="button" class="btn" onclick="createProtocolFromPicker()">Create and select</button>
+    </div>
+    <div id="newControlSourceControls" class="form-group mb-14" style="display:none">
+      <label for="newSourcePinNumber">Create control source</label>
+      <input id="newSourcePinNumber" type="number" min="0" step="1" placeholder="Pin number" />
+      <label for="newSourceControllerId">Controller</label>
+      <select id="newSourceControllerId">
+        <option value="-1">Main controller</option>
+)rawliteral");
+        for (const Controller &controller : ControllerStorage::getAll())
+        {
+            String label = "Controller " + String(controller.getId()) +
+                           " (Room " + String(controller.getRoomId()) + ")";
+            EspServer::server.sendContent("<option value='" + String(controller.getId()) +
+                                          "'>" + label + "</option>");
+        }
+        EspServer::server.sendContent(R"rawliteral(
+      </select>
+      <button type="button" class="btn" onclick="createControlSourceFromPicker()">Create and select</button>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="closeRelationPicker()">Cancel</button>
@@ -327,7 +419,7 @@ public:
 <dialog id="wirelessDetailsModal" class="modal-dialog">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Protocol details</h3>
+      <h3 id="wirelessDetailsTitle">Details</h3>
       <button type="button" class="close-btn" onclick="document.getElementById('wirelessDetailsModal').close()">&times;</button>
     </div>
     <div id="wirelessDetailsContent"></div>
@@ -377,6 +469,19 @@ public:
                     String(controller.getId()) + "</td><td>" + label + "</td></tr>");
             }
         }
+        else if (type == "source")
+        {
+            for (const ControllerSource &source : ControllerSourceStorage::getAll())
+            {
+                if (source.getButtonType() >= 0)
+                    continue;
+                String label = "Control Source " + String(source.getId()) +
+                               " (Pin " + String(source.getPinNumber()) + ")";
+                EspServer::server.sendContent("<tr><td><input type='radio' name='relationChoice' value='" +
+                    String(source.getId()) + "' data-label='" + label + "'></td><td>" +
+                    String(source.getId()) + "</td><td>" + label + "</td></tr>");
+            }
+        }
         else if (type == "protocol" || type == "wirelessProtocol")
         {
             for (const Protocol &protocol : ProtocolStorage::getAll())
@@ -404,6 +509,20 @@ public:
             EspServer::server.sendContent("<p>Select an existing protocol or create a new one.</p>");
         else if (type == "wirelessProtocol")
             EspServer::server.sendContent("<p>Select a wireless protocol or create a new one.</p>");
+    }
+
+    static void showControllerOptions()
+    {
+        EspServer::server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+        EspServer::server.send(200, "text/html", "");
+        EspServer::server.sendContent("<option value='-1'>Main controller</option>");
+        for (const Controller &controller : ControllerStorage::getAll())
+        {
+            String label = "Controller " + String(controller.getId()) +
+                           " (Room " + String(controller.getRoomId()) + ")";
+            EspServer::server.sendContent("<option value='" + String(controller.getId()) +
+                                          "'>" + label + "</option>");
+        }
     }
 
     static void sendWirelessDetails(int id)
@@ -437,6 +556,71 @@ public:
         "</td></tr><tr><th>Wireless Device ID</th><td>" + String(device->id) +
         "</td></tr><tr><th>MAC</th><td>" + mac +
             "</td></tr><tr><th>Channel</th><td>" + String(device->channel) +
+            "</td></tr></tbody></table>";
+        EspServer::server.send(200, "text/html", html);
+    }
+
+    static void sendControlSourceDetails(int id)
+    {
+        const ControllerSource *source = NULL;
+        for (const ControllerSource &candidate : ControllerSourceStorage::getAll())
+        {
+            if (candidate.getId() == id)
+            {
+                source = &candidate;
+                break;
+            }
+        }
+        if (source == NULL)
+        {
+            EspServer::server.send(404, "text/plain", "Control source not found");
+            return;
+        }
+
+        String controller = source->getControllerId() == -1
+            ? String("Main controller")
+            : "Controller " + String(source->getControllerId());
+        String html = "<table><tbody><tr><th>Control Source ID</th><td>" +
+            String(source->getId()) + "</td></tr><tr><th>Pin Number</th><td>" +
+            String(source->getPinNumber()) + "</td></tr><tr><th>Controller ID</th><td>" +
+            String(source->getControllerId()) + "</td></tr><tr><th>Controller</th><td>" +
+            controller + "</td></tr></tbody></table>";
+        EspServer::server.send(200, "text/html", html);
+    }
+
+    static void sendDeviceDetails(int id)
+    {
+        const Light *device = NULL;
+        for (const Light &candidate : LightStorage::getLights())
+        {
+            if (candidate.id == id)
+            {
+                device = &candidate;
+                break;
+            }
+        }
+        if (device == NULL)
+        {
+            EspServer::server.send(404, "text/plain", "Device not found");
+            return;
+        }
+
+        String html = "<table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>"
+            "<tr><th>ID</th><td>" + String(device->id) +
+            "</td></tr><tr><th>Name</th><td>" +
+            escapeHtml(String(device->name.c_str())) +
+            "</td></tr><tr><th>Room</th><td>" +
+            escapeHtml(roomName(device->roomId)) +
+            "</td></tr><tr><th>Controller</th><td>" +
+            escapeHtml(controllerName(device->controllerId)) +
+            "</td></tr><tr><th>Protocol</th><td>" +
+            escapeHtml(protocolName(device->protocolId)) +
+            "</td></tr><tr><th>Pin Number</th><td>" +
+            String(device->outputNumber) +
+            "</td></tr><tr><th>Number On Light</th><td>" +
+            String(device->numberOnLight) +
+            "</td></tr><tr><th>State</th><td>" +
+            String(device->state ? "ON" : "OFF") +
             "</td></tr></tbody></table>";
         EspServer::server.send(200, "text/html", html);
     }

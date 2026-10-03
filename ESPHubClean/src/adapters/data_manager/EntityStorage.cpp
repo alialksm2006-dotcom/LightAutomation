@@ -82,6 +82,17 @@ bool RoomStorage::isUsed(int id)
     return false;
 }
 
+void RoomStorage::restoreAll(const std::vector<Room> &records)
+{
+    rooms = records;
+    nextId = 0;
+    for (const Room &room : rooms)
+    {
+        if (room.id > nextId)
+            nextId = room.id;
+    }
+}
+
 const std::vector<Controller> &ControllerStorage::getAll()
 {
     return controllers;
@@ -150,6 +161,17 @@ bool ControllerStorage::isUsed(int id)
             return true;
     }
     return false;
+}
+
+void ControllerStorage::restoreAll(const std::vector<Controller> &records)
+{
+    controllers = records;
+    nextId = 0;
+    for (const Controller &controller : controllers)
+    {
+        if (controller.getId() > nextId)
+            nextId = controller.getId();
+    }
 }
 
 const std::vector<Protocol> &ProtocolStorage::getAll()
@@ -248,6 +270,17 @@ const Protocol *ProtocolStorage::find(int id)
             return &protocol;
     }
     return NULL;
+}
+
+void ProtocolStorage::restoreAll(const std::vector<Protocol> &records)
+{
+    protocols = records;
+    nextId = 0;
+    for (const Protocol &protocol : protocols)
+    {
+        if (protocol.getId() > nextId)
+            nextId = protocol.getId();
+    }
 }
 
 const std::vector<DiscoveredWirelessPeer> &WirelessStorage::getDiscovered()
@@ -394,4 +427,15 @@ const WirelessDevice *WirelessStorage::find(int id)
             return &device;
     }
     return NULL;
+}
+
+void WirelessStorage::restoreAll(const std::vector<WirelessDevice> &records)
+{
+    devices = records;
+    nextId = 0;
+    for (const WirelessDevice &device : devices)
+    {
+        if (device.id > nextId)
+            nextId = device.id;
+    }
 }
